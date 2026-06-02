@@ -1,0 +1,115 @@
+import { useParams, Link } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
+
+export default function DepartmentDetails() {
+  const { id } = useParams<{ id: string }>();
+  const { departments, employees } = useApp();
+
+  const department = departments.find((d) => d.id === id);
+
+  if (!department) {
+    return (
+      <div className="py-12 text-center">
+        <h3 className="font-extrabold text-neutral-800 dark:text-white text-lg">Department not found</h3>
+        <p className="text-sm text-neutral-500 mt-1">The requested department does not exist.</p>
+        <Link to="/departments" className="mt-4 inline-block px-4 py-2 bg-neutral-900 text-white rounded-xl font-bold text-xs">
+          Back to Departments
+        </Link>
+      </div>
+    );
+  }
+
+  const deptEmployees = employees.filter((e) => e.department === department.name);
+
+  return (
+    <div className="space-y-6">
+
+      {/* Back link */}
+      <Link to="/departments" className="text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center gap-1">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        Back to Departments
+      </Link>
+
+      {/* Department Header */}
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-neutral-900 dark:text-white tracking-tight">{department.name}</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1 max-w-lg">{department.description}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 shrink-0">
+          <div className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 p-4 rounded-xl text-center">
+            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Head</span>
+            <p className="font-extrabold text-neutral-950 dark:text-white text-sm mt-1">{department.head}</p>
+          </div>
+          <div className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 p-4 rounded-xl text-center">
+            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Members</span>
+            <p className="font-black text-neutral-950 dark:text-white text-xl mt-1">{deptEmployees.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Employees in this Department */}
+      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-neutral-100 dark:border-neutral-800">
+          <h3 className="font-bold text-base text-neutral-900 dark:text-white">Department Members</h3>
+          <p className="text-xs text-neutral-500 mt-0.5">All employees currently assigned to {department.name}.</p>
+        </div>
+
+        {deptEmployees.length === 0 ? (
+          <div className="p-12 text-center text-neutral-400 text-sm">
+            No employees assigned to this department yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-neutral-100 dark:border-neutral-800 text-neutral-400 dark:text-neutral-500 font-bold uppercase tracking-wider">
+                  <th className="p-4 font-semibold">Employee</th>
+                  <th className="p-4 font-semibold">Position</th>
+                  <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold">Hire Date</th>
+                  <th className="p-4 font-semibold text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                {deptEmployees.map((emp) => (
+                  <tr key={emp.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-all">
+                    <td className="p-4 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-950 dark:text-white font-bold flex items-center justify-center overflow-hidden shrink-0">
+                        {emp.photoUrl ? (
+                          <img className="w-full h-full object-cover grayscale" src={emp.photoUrl} alt="" />
+                        ) : (
+                          `${emp.firstName[0]}${emp.lastName[0]}`
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-neutral-900 dark:text-white">{emp.firstName} {emp.lastName}</p>
+                        <p className="text-[10px] text-neutral-400">{emp.email}</p>
+                      </div>
+                    </td>
+                    <td className="p-4 text-neutral-600 dark:text-neutral-400 font-semibold">{emp.position}</td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                        emp.status === 'Active'
+                          ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
+                      }`}>
+                        {emp.status}
+                      </span>
+                    </td>
+                    <td className="p-4 font-bold text-neutral-500 dark:text-neutral-400">{emp.hireDate}</td>
+                    <td className="p-4 text-right">
+                      <Link to={`/employees/${emp.id}`} className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-[10px] font-bold rounded-lg text-neutral-800 dark:text-neutral-200 transition-all">
+                        View Profile
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
