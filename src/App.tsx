@@ -1,17 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
-import Login from './components/Login';
-import CreateAccount from './components/CreateAccount';
-import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
-import EmployeesList from './components/EmployeesList';
-import EmployeeCreate from './components/EmployeeCreate';
-import EmployeeDetails from './components/EmployeeDetails';
-import DepartmentsList from './components/DepartmentsList';
-import DepartmentDetails from './components/DepartmentDetails';
-import Reports from './components/Reports';
-import Settings from './components/Settings';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AppProvider } from "./context/AppContext";
+import CreateAccount from "./components/CreateAccount";
+import Dashboard from "./components/Dashboard";
+import DepartmentDetails from "./components/DepartmentDetails";
+import DepartmentsList from "./components/DepartmentsList";
+import EmployeeCreate from "./components/EmployeeCreate";
+import EmployeeDetails from "./components/EmployeeDetails";
+import EmployeesList from "./components/EmployeesList";
+import Layout from "./components/Layout";
+import Login from "./components/Login";
+import Reports from "./components/Reports";
+import Settings from "./components/Settings";
+import "./App.css";
 
 function App() {
   return (
@@ -23,14 +23,16 @@ function App() {
           <Route path="/create-account" element={<CreateAccount />} />
 
           {/* App routes (with sidebar layout) */}
-          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/employees" element={<Layout><EmployeesList /></Layout>} />
-          <Route path="/employees/create" element={<Layout><EmployeeCreate /></Layout>} />
-          <Route path="/employees/:id" element={<Layout><EmployeeDetails /></Layout>} />
-          <Route path="/departments" element={<Layout><DepartmentsList /></Layout>} />
-          <Route path="/departments/:id" element={<Layout><DepartmentDetails /></Layout>} />
-          <Route path="/reports" element={<Layout><Reports /></Layout>} />
-          <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/dashboard" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="employees" element={<EmployeesList />} />
+            <Route path="employees/create" element={<EmployeeCreate />} />
+            <Route path="employees/:id" element={<EmployeeDetails />} />
+            <Route path="departments" element={<DepartmentsList />} />
+            <Route path="departments/:id" element={<DepartmentDetails />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />

@@ -83,14 +83,27 @@ export interface CompanyInfo {
 export interface Settings {
   admin: AdminProfile;
   company: CompanyInfo;
-  appearance: 'light' | 'dark';
 }
 
 interface AppContextType {
   employees: Employee[];
   departments: Department[];
   settings: Settings;
-  addEmployee: (employee: Omit<Employee, 'id' | 'education' | 'salary' | 'bankAccount' | 'documents' | 'notes' | 'dob' | 'address' | 'emergencyContact' | 'reportingManager'>) => string;
+  addEmployee: (
+    employee: Omit<
+      Employee,
+      | 'id'
+      | 'education'
+      | 'salary'
+      | 'bankAccount'
+      | 'documents'
+      | 'notes'
+      | 'dob'
+      | 'address'
+      | 'emergencyContact'
+      | 'reportingManager'
+    >
+  ) => string;
   updateEmployee: (id: string, updatedData: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
   addDepartment: (department: Omit<Department, 'id' | 'dateCreated'>) => void;
@@ -103,10 +116,34 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Initial Mock Departments
 const initialDepartments: Department[] = [
-  { id: 'dep-1', name: 'Design', description: 'User interface design, experience planning, and product aesthetics research.', head: 'Brooklyn Simmons', dateCreated: '2024-01-10' },
-  { id: 'dep-2', name: 'Development', description: 'Engineering, stack architecture, DevOps, and frontend-backend development.', head: 'Cody Fisher', dateCreated: '2024-01-12' },
-  { id: 'dep-3', name: 'Human Resource', description: 'Talent acquisitions, company benefits, employee retention, and operations.', head: 'Brooklyn Simmons', dateCreated: '2024-01-15' },
-  { id: 'dep-4', name: 'Marketing', description: 'Product marketing campaigns, content strategies, SEO, and public relations.', head: 'Lisa Harvey', dateCreated: '2024-01-18' }
+  {
+    id: 'dep-1',
+    name: 'Design',
+    description: 'User interface design, experience planning, and product aesthetics research.',
+    head: 'Brooklyn Simmons',
+    dateCreated: '2024-01-10',
+  },
+  {
+    id: 'dep-2',
+    name: 'Development',
+    description: 'Engineering, stack architecture, DevOps, and frontend-backend development.',
+    head: 'Cody Fisher',
+    dateCreated: '2024-01-12',
+  },
+  {
+    id: 'dep-3',
+    name: 'Human Resource',
+    description: 'Talent acquisitions, company benefits, employee retention, and operations.',
+    head: 'Brooklyn Simmons',
+    dateCreated: '2024-01-15',
+  },
+  {
+    id: 'dep-4',
+    name: 'Marketing',
+    description: 'Product marketing campaigns, content strategies, SEO, and public relations.',
+    head: 'Lisa Harvey',
+    dateCreated: '2024-01-18',
+  },
 ];
 
 // Initial Mock Employees
@@ -129,16 +166,27 @@ const initialEmployees: Employee[] = [
     reportingManager: 'Self',
     photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     education: [
-      { id: 'edu-1', institutionName: 'Chicago Art Institute', degree: 'Bachelor of Fine Arts', qualification: 'BFA', fieldOfStudy: 'Graphic Design', graduationYear: '2014' }
+      {
+        id: 'edu-1',
+        institutionName: 'Chicago Art Institute',
+        degree: 'Bachelor of Fine Arts',
+        qualification: 'BFA',
+        fieldOfStudy: 'Graphic Design',
+        graduationYear: '2014',
+      },
     ],
     salary: { baseSalary: 8500, bonus: 1500, allowances: 500 },
     bankAccount: { bankName: 'Chase Bank', accountName: 'Brooklyn Simmons', accountNumber: '1234567890' },
     documents: [
-      { id: 'doc-1', name: 'Resume_Brooklyn.pdf', type: 'Resume', uploadDate: '2024-01-09' }
+      { id: 'doc-1', name: 'Resume_Brooklyn.pdf', type: 'Resume', uploadDate: '2024-01-09' },
     ],
     notes: [
-      { id: 'n-1', text: 'Brooklyn has outstanding creative inputs and has completed UI sprints perfectly.', createdDate: '2024-02-10' }
-    ]
+      {
+        id: 'n-1',
+        text: 'Brooklyn has outstanding creative inputs and has completed UI sprints perfectly.',
+        createdDate: '2024-02-10',
+      },
+    ],
   },
   {
     id: 'emp-102',
@@ -158,12 +206,19 @@ const initialEmployees: Employee[] = [
     reportingManager: 'Brooklyn Simmons',
     photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     education: [
-      { id: 'edu-2', institutionName: 'Binus University', degree: 'Bachelor of Computer Science', qualification: 'B.CompSc', fieldOfStudy: 'Software Engineering', graduationYear: '2020' }
+      {
+        id: 'edu-2',
+        institutionName: 'Binus University',
+        degree: 'Bachelor of Computer Science',
+        qualification: 'B.CompSc',
+        fieldOfStudy: 'Software Engineering',
+        graduationYear: '2020',
+      },
     ],
     salary: { baseSalary: 4500, bonus: 500, allowances: 200 },
     bankAccount: { bankName: 'Bank Central Asia', accountName: 'Cody Fisher', accountNumber: '9876543210' },
     documents: [],
-    notes: []
+    notes: [],
   },
   {
     id: 'emp-103',
@@ -186,7 +241,7 @@ const initialEmployees: Employee[] = [
     salary: { baseSalary: 6200, bonus: 800, allowances: 300 },
     bankAccount: { bankName: 'Wells Fargo', accountName: 'Ralph Edwards', accountNumber: '2468135790' },
     documents: [],
-    notes: []
+    notes: [],
   },
   {
     id: 'emp-104',
@@ -209,23 +264,22 @@ const initialEmployees: Employee[] = [
     salary: { baseSalary: 5800, bonus: 1000, allowances: 400 },
     bankAccount: { bankName: 'Bank of America', accountName: 'Lisa Harvey', accountNumber: '1357924680' },
     documents: [],
-    notes: []
-  }
+    notes: [],
+  },
 ];
 
 const initialSettings: Settings = {
   admin: {
     name: 'Admin Strator',
     email: 'admin@rockscompany.com',
-    profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'
+    profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
   },
   company: {
     name: 'Rocks Company Ltd',
     email: 'contact@rockscompany.com',
     phoneNumber: '+1 312 908 1234',
-    address: '123 Avenue block, Chicago, IL'
+    address: '123 Avenue block, Chicago, IL',
   },
-  appearance: 'light'
 };
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -254,14 +308,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     localStorage.setItem('staffsync_settings', JSON.stringify(settings));
-    if (settings.appearance === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.remove('dark');
   }, [settings]);
 
-  const addEmployee = (empData: Omit<Employee, 'id' | 'education' | 'salary' | 'bankAccount' | 'documents' | 'notes' | 'dob' | 'address' | 'emergencyContact' | 'reportingManager'>) => {
+  const addEmployee = (
+    empData: Omit<
+      Employee,
+      | 'id'
+      | 'education'
+      | 'salary'
+      | 'bankAccount'
+      | 'documents'
+      | 'notes'
+      | 'dob'
+      | 'address'
+      | 'emergencyContact'
+      | 'reportingManager'
+    >
+  ) => {
     const newId = `emp-${Date.now()}`;
     const newEmployee: Employee = {
       ...empData,
@@ -274,7 +338,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       salary: { baseSalary: 0, bonus: 0, allowances: 0 },
       bankAccount: { bankName: '', accountName: '', accountNumber: '' },
       documents: [],
-      notes: []
+      notes: [],
     };
     setEmployees((prev) => [...prev, newEmployee]);
     return newId;
@@ -295,7 +359,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newDep: Department = {
       ...depData,
       id: newId,
-      dateCreated: new Date().toISOString().split('T')[0]
+      dateCreated: new Date().toISOString().split('T')[0],
     };
     setDepartments((prev) => [...prev, newDep]);
   };
@@ -326,7 +390,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addDepartment,
         updateDepartment,
         deleteDepartment,
-        updateSettings
+        updateSettings,
       }}
     >
       {children}
