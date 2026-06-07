@@ -187,49 +187,55 @@ export default function Reports() {
           </div>{" "}
         </div>{" "}
         {/* Salary Distribution bar chart */}{" "}
-        <div className="bg-white -[#e9edc9] border border-neutral-200 -[#ccd5ae] rounded-2xl p-6 shadow-sm">
-          {" "}
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
           <h3 className="font-bold text-sm text-neutral-900 mb-6">
-            Salary Distribution by Employee
-          </h3>{" "}
+            Average Salary Distribution by Department
+          </h3>
           <div className="h-52 flex items-end justify-between gap-3 overflow-x-auto pb-2">
-            {" "}
-            {employees.map((emp) => {
-              const total =
-                emp.salary.baseSalary +
-                emp.salary.bonus +
-                emp.salary.allowances;
-              const maxSal = Math.max(
-                ...employees.map(
-                  (e) =>
-                    e.salary.baseSalary + e.salary.bonus + e.salary.allowances,
-                ),
+            {departments.map((dep) => {
+              const deptEmployees = employees.filter((e) => e.department === dep.name);
+              const totalSalary = deptEmployees.reduce(
+                (sum, e) =>
+                  sum + e.salary.baseSalary + e.salary.bonus + e.salary.allowances,
+                0,
+              );
+              const avgSalary = deptEmployees.length > 0 ? Math.round(totalSalary / deptEmployees.length) : 0;
+              
+              const maxAvgSalary = Math.max(
+                ...departments.map((d) => {
+                  const de = employees.filter((e) => e.department === d.name);
+                  const total = de.reduce(
+                    (sum, e) =>
+                      sum + e.salary.baseSalary + e.salary.bonus + e.salary.allowances,
+                    0,
+                  );
+                  return de.length > 0 ? total / de.length : 0;
+                }),
                 1,
               );
-              const pct = (total / maxSal) * 100;
+              const pct = (avgSalary / maxAvgSalary) * 100;
+
               return (
                 <div
-                  key={emp.id}
-                  className="flex-1 min-w-[40px] flex flex-col items-center gap-2"
+                  key={dep.id}
+                  className="flex-1 min-w-[60px] flex flex-col items-center gap-2"
                 >
-                  {" "}
                   <span className="text-[9px] font-bold text-neutral-500">
-                    ${(total / 1000).toFixed(1)}k
-                  </span>{" "}
-                  <div className="w-full bg-neutral-100 -[#faedcd] rounded-t-md h-40 flex items-end">
-                    {" "}
+                    ${(avgSalary / 1000).toFixed(1)}k
+                  </span>
+                  <div className="w-full bg-neutral-100 rounded-t-md h-40 flex items-end">
                     <div
                       className="w-full bg-[#ccd5ae] rounded-t-md transition-all duration-500"
                       style={{ height: `${pct}%` }}
-                    />{" "}
-                  </div>{" "}
-                  <span className="text-[8px] font-bold text-neutral-400 truncate w-full text-center">
-                    {emp.firstName}
-                  </span>{" "}
+                    />
+                  </div>
+                  <span className="text-[8px] font-bold text-neutral-400 truncate w-full text-center" title={dep.name}>
+                    {dep.name}
+                  </span>
                 </div>
               );
-            })}{" "}
-          </div>{" "}
+            })}
+          </div>
         </div>{" "}
       </section>{" "}
       {/* HIRING REPORTS */}{" "}

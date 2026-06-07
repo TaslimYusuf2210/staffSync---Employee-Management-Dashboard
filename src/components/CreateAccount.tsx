@@ -6,10 +6,16 @@ import hrRepSvg from '../assets/hr_rep.svg';
 
 const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),
+  email: z.string().email({ message: 'Please enter a valid email address' }),
+  description: z.string().min(1, { message: 'Please select a company description / type' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
+  confirmPassword: z.string().min(6, { message: 'Password confirmation must be at least 6 characters long' }),
   agreeTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms and conditions',
   }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -23,7 +29,10 @@ export default function CreateAccount() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       companyName: '',
+      email: '',
+      description: '',
       password: '',
+      confirmPassword: '',
       agreeTerms: true,
     },
   });
@@ -31,7 +40,7 @@ export default function CreateAccount() {
   const onSubmit = (data: RegisterFormValues) => {
     // Simulated registration
     console.log('Registration Submitted:', data);
-    alert(`Account created successfully for company: ${data.companyName}`);
+    alert(`Account created successfully for company: ${data.companyName} (${data.email})`);
   };
 
   return (
@@ -95,6 +104,70 @@ export default function CreateAccount() {
                 )}
               </div>
 
+              {/* Email Field */}
+              <div className="relative group">
+                <input
+                  type="email"
+                  id="email"
+                  placeholder=""
+                  {...register('email')}
+                  className={`w-full py-3 px-4 border-b-2 text-slate-800 placeholder-transparent focus:outline-none transition-all duration-200 ${
+                    errors.email
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-slate-200 focus:border-indigo-600'
+                  }`}
+                />
+                <label
+                  htmlFor="email"
+                  className="absolute left-4 -top-2.5 text-xs text-slate-500 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-indigo-600"
+                >
+                  Email Address
+                </label>
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Description Field */}
+              <div className="relative group">
+                <select
+                  id="description"
+                  {...register('description')}
+                  className={`w-full py-3 px-4 border-b-2 text-slate-800 focus:outline-none transition-all duration-200 bg-transparent cursor-pointer ${
+                    errors.description
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-slate-200 focus:border-indigo-600'
+                  }`}
+                >
+                  <option value="" disabled hidden>Select Company Description</option>
+                  <option value="Corporate Headquarters">Corporate Headquarters</option>
+                  <option value="Branch Office">Branch Office</option>
+                  <option value="Regional Office">Regional Office</option>
+                  <option value="Startup">Startup</option>
+                  <option value="Small & Medium Enterprise (SME)">Small & Medium Enterprise (SME)</option>
+                  <option value="Large Enterprise">Large Enterprise</option>
+                  <option value="Multinational Company">Multinational Company</option>
+                  <option value="Government Agency">Government Agency</option>
+                  <option value="Non-Profit Organization">Non-Profit Organization</option>
+                  <option value="Educational Institution">Educational Institution</option>
+                  <option value="Healthcare Facility">Healthcare Facility</option>
+                  <option value="Remote / Distributed Team">Remote / Distributed Team</option>
+                  <option value="Agency / Consulting Firm">Agency / Consulting Firm</option>
+                  <option value="Manufacturing Plant">Manufacturing Plant</option>
+                  <option value="Retail Chain">Retail Chain</option>
+                  <option value="Other">Other</option>
+                </select>
+                <label
+                  htmlFor="description"
+                  className="absolute left-4 -top-2.5 text-xs text-slate-500 transition-all duration-200"
+                >
+                  Description / Organization Type
+                </label>
+                {errors.description && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.description.message}</p>
+                )}
+              </div>
+
               {/* Password Field */}
               <div className="relative group">
                 <input
@@ -116,6 +189,30 @@ export default function CreateAccount() {
                 </label>
                 {errors.password && (
                   <p className="text-red-500 text-xs mt-1 font-medium">{errors.password.message}</p>
+                )}
+              </div>
+
+              {/* Confirm Password Field */}
+              <div className="relative group">
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  placeholder=""
+                  {...register('confirmPassword')}
+                  className={`w-full py-3 px-4 border-b-2 text-slate-800 placeholder-transparent focus:outline-none transition-all duration-200 ${
+                    errors.confirmPassword
+                      ? 'border-red-400 focus:border-red-500'
+                      : 'border-slate-200 focus:border-indigo-600'
+                  }`}
+                />
+                <label
+                  htmlFor="confirmPassword"
+                  className="absolute left-4 -top-2.5 text-xs text-slate-500 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-indigo-600"
+                >
+                  Confirm Password
+                </label>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.confirmPassword.message}</p>
                 )}
               </div>
 

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import workTimeSvg from '../assets/work_time.svg';
 
 const loginSchema = z.object({
-  companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),
+  email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
   rememberMe: z.boolean().optional(),
 });
@@ -20,7 +20,7 @@ export default function Login() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      companyName: '',
+      email: '',
       password: '',
       rememberMe: false,
     },
@@ -29,7 +29,7 @@ export default function Login() {
   const onSubmit = (data: LoginFormValues) => {
     // Simulated authentication
     console.log('Login Submitted:', data);
-    alert(`Logged in successfully for company: ${data.companyName}`);
+    alert(`Logged in successfully with email: ${data.email}`);
   };
 
   return (
@@ -69,27 +69,27 @@ export default function Login() {
             <h1 className="text-4xl font-extrabold text-indigo-950 tracking-tight mb-8">Welcome back</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Company Name Field */}
+              {/* Email Field */}
               <div className="relative group">
                 <input
-                  type="text"
-                  id="companyName"
+                  type="email"
+                  id="email"
                   placeholder=""
-                  {...register('companyName')}
+                  {...register('email')}
                   className={`w-full py-3 px-4 border-b-2 text-slate-800 placeholder-transparent focus:outline-none transition-all duration-200 ${
-                    errors.companyName
+                    errors.email
                       ? 'border-red-400 focus:border-red-500'
                       : 'border-slate-200 focus:border-indigo-600'
                   }`}
                 />
                 <label
-                  htmlFor="companyName"
+                  htmlFor="email"
                   className="absolute left-4 -top-2.5 text-xs text-slate-500 transition-all duration-200 peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3 peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-indigo-600"
                 >
-                  Company Name
+                  Email Address
                 </label>
-                {errors.companyName && (
-                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.companyName.message}</p>
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.email.message}</p>
                 )}
               </div>
 
