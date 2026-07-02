@@ -1,4 +1,4 @@
-import { useApp } from '../context/AppContext';
+import { useApp } from '../../context/AppContext';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {

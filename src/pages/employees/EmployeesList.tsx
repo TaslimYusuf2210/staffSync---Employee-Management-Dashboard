@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../../context/AppContext';
 
 export default function EmployeesList() {
   const { employees, departments, deleteEmployee } = useApp();

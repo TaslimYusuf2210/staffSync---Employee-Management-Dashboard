@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from 'react-router-dom';
-import hrRepSvg from '../assets/hr_rep.svg';
+import hrRepSvg from '../../assets/hr_rep.svg';
 
 const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),

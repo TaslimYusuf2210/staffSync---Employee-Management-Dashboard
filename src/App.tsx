@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
-import CreateAccount from "./components/CreateAccount";
-import Dashboard from "./components/Dashboard";
-import DepartmentDetails from "./components/DepartmentDetails";
-import DepartmentsList from "./components/DepartmentsList";
-import EmployeeCreate from "./components/EmployeeCreate";
-import EmployeeDetails from "./components/EmployeeDetails";
-import EmployeesList from "./components/EmployeesList";
+import CreateAccount from "./pages/auth/CreateAccount";
+import Dashboard from "./pages/dashboard/Dashboard";
+import DepartmentDetails from "./pages/departments/DepartmentDetails";
+import DepartmentsList from "./pages/departments/DepartmentsList";
+import EmployeeCreate from "./pages/employees/EmployeeCreate";
+import EmployeeDetails from "./pages/employees/EmployeeDetails";
+import EmployeesList from "./pages/employees/EmployeesList";
 import Layout from "./components/Layout";
-import Login from "./components/Login";
-import Reports from "./components/Reports";
-import Settings from "./components/Settings";
+import Login from "./pages/auth/Login";
+import Reports from "./pages/reports/Reports";
+import Settings from "./pages/settings/Settings";
 import "./App.css";
 
 function App() {

@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../../context/AppContext";
 export default function DepartmentDetails() {
   const { id } = useParams<{ id: string }>();
   const { departments, employees } = useApp();

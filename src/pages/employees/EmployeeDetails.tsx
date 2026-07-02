@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import type { Employee, Education, Document, Note } from '../context/AppContext';
+import { useApp } from '../../context/AppContext';
+import type { Employee, Education, Document, Note } from '../../context/AppContext';
 
 type TabType =
   | 'overview'

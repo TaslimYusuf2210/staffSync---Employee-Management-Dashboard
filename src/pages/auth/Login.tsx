@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from 'react-router-dom';
-import workTimeSvg from '../assets/work_time.svg';
+import workTimeSvg from '../../assets/work_time.svg';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),

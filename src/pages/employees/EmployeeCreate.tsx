@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { useApp } from "../context/AppContext";
+import { useApp } from "../../context/AppContext";
 
 const employeeSchema = z.object({
   firstName: z

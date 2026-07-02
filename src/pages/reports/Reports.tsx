@@ -1,4 +1,4 @@
-import { useApp } from "../context/AppContext";
+import { useApp } from "../../context/AppContext";
 export default function Reports() {
   const { employees, departments } = useApp();
   const totalEmployees = employees.length;
