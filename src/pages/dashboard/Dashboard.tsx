@@ -1,10 +1,14 @@
 import { useApp } from '../../context/AppContext';
 import { Link } from 'react-router-dom';
+import { PageHeader } from '../../components/PageHeader';
+import { StatCard } from '../../components/StatCard';
+import { StatusBadge } from '../../components/StatusBadge';
+import { Avatar } from '../../components/ui/avatar';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 
 export default function Dashboard() {
   const { employees, departments } = useApp();
 
-  // Statistics calculation
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter((e) => e.status === 'Active').length;
   const inactiveEmployees = employees.filter(
@@ -12,14 +16,12 @@ export default function Dashboard() {
   ).length;
   const totalDepartments = departments.length;
 
-  // New Employees This Month
   const newEmployeesThisMonth = employees.filter((e) => {
     const hireDate = new Date(e.hireDate);
     const today = new Date();
     return hireDate.getMonth() === today.getMonth() && hireDate.getFullYear() === today.getFullYear();
   }).length;
 
-  // Sort employees by hireDate descending to show recent ones
   const recentEmployees = [...employees]
     .sort((a, b) => new Date(b.hireDate).getTime() - new Date(a.hireDate).getTime())
     .slice(0, 5);
@@ -27,60 +29,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
 
-      {/* Upper header summary */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">Overview</h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          Here is what is happening across your workspace today.
-        </p>
-      </div>
+      <PageHeader title="Overview" description="Here is what is happening across your workspace today." />
 
       {/* STATISTICS CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Card 1 */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-            Total Employees
-          </span>
-          <p className="text-3xl font-black text-neutral-950 mt-2">{totalEmployees}</p>
-          <span className="text-[10px] text-neutral-400 block mt-1">Total database count</span>
-        </div>
-
-        {/* Card 2 */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-            Active Employees
-          </span>
-          <p className="text-3xl font-black text-neutral-950 mt-2">{activeEmployees}</p>
-          <span className="text-[10px] text-green-600 font-semibold block mt-1">● Currently active</span>
-        </div>
-
-        {/* Card 3 */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-            Inactive Employees
-          </span>
-          <p className="text-3xl font-black text-neutral-950 mt-2">{inactiveEmployees}</p>
-          <span className="text-[10px] text-neutral-400 block mt-1">Excluding active / probation</span>
-        </div>
-
-        {/* Card 4 */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-            Total Departments
-          </span>
-          <p className="text-3xl font-black text-neutral-950 mt-2">{totalDepartments}</p>
-          <span className="text-[10px] text-neutral-400 block mt-1">Registered segments</span>
-        </div>
-
-        {/* Card 5 */}
-        <div className="bg-white border border-neutral-200 rounded-2xl p-5 shadow-sm">
-          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-            New This Month
-          </span>
-          <p className="text-3xl font-black text-neutral-950 mt-2">{newEmployeesThisMonth}</p>
-          <span className="text-[10px] text-neutral-400 block mt-1">Hired in current month</span>
-        </div>
+        <StatCard label="Total Employees" value={totalEmployees} footer="Total database count" />
+        <StatCard label="Active Employees" value={activeEmployees} footer="● Currently active" footerClassName="text-green-600 font-semibold" />
+        <StatCard label="Inactive Employees" value={inactiveEmployees} footer="Excluding active / probation" />
+        <StatCard label="Total Departments" value={totalDepartments} footer="Registered segments" />
+        <StatCard label="New This Month" value={newEmployeesThisMonth} footer="Hired in current month" />
       </section>
 
       {/* CHARTS GRAPHICS PANEL */}
@@ -174,14 +131,9 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="font-bold text-base text-neutral-900">Recent Employees</h3>
-            <p className="text-xs text-neutral-500 mt-1">
-              Newly hired personnel registered in the database.
-            </p>
+            <p className="text-xs text-neutral-500 mt-1">Newly hired personnel registered in the database.</p>
           </div>
-          <Link
-            to="/dashboard/employees"
-            className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 transition-all"
-          >
+          <Link to="/dashboard/employees" className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 transition-all">
             Manage All
           </Link>
         </div>
@@ -189,49 +141,40 @@ export default function Dashboard() {
         {recentEmployees.length === 0 ? (
           <div className="py-8 text-center text-neutral-400 text-sm">No employees registered yet.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-neutral-100 text-neutral-400 font-bold uppercase tracking-wider">
-                  <th className="pb-3 font-semibold">Name</th>
-                  <th className="pb-3 font-semibold">Department</th>
-                  <th className="pb-3 font-semibold">Position</th>
-                  <th className="pb-3 font-semibold">Date Joined</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {recentEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-neutral-50 transition-all">
-                    <td className="py-3.5 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-neutral-200 text-neutral-800 font-bold flex items-center justify-center overflow-hidden shrink-0">
-                        {emp.photoUrl ? (
-                          <img className="w-full h-full object-cover grayscale" src={emp.photoUrl} alt="" />
-                        ) : (
-                          `${emp.firstName[0]}${emp.lastName[0]}`
-                        )}
-                      </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Date Joined</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentEmployees.map((emp) => (
+                <TableRow key={emp.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar firstName={emp.firstName} lastName={emp.lastName} photoUrl={emp.photoUrl} />
                       <div>
-                        <Link
-                          to={`/dashboard/employees/${emp.id}`}
-                          className="font-bold text-neutral-900 hover:underline"
-                        >
+                        <Link to={`/dashboard/employees/${emp.id}`} className="font-bold text-neutral-900 hover:underline">
                           {emp.firstName} {emp.lastName}
                         </Link>
                         <p className="text-[10px] text-neutral-500">{emp.email}</p>
                       </div>
-                    </td>
-                    <td className="py-3.5">
-                      <span className="px-2 py-0.5 bg-neutral-100 text-neutral-800 text-[10px] font-bold rounded border border-neutral-200">
-                        {emp.department}
-                      </span>
-                    </td>
-                    <td className="py-3.5 text-neutral-600 font-medium">{emp.position}</td>
-                    <td className="py-3.5 text-neutral-500 font-bold">{emp.hireDate}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="px-2 py-0.5 bg-neutral-100 text-neutral-800 text-[10px] font-bold rounded border border-neutral-200">
+                      {emp.department}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-neutral-600 font-medium">{emp.position}</TableCell>
+                  <TableCell className="text-neutral-500 font-bold">{emp.hireDate}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </section>
     </div>

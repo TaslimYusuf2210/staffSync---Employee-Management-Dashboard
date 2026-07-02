@@ -1,0 +1,68 @@
+import { useState } from 'react';
+import type { Employee, Education } from '../../../context/AppContext';
+
+interface EducationSectionProps {
+  education: Employee['education'];
+  onAdd: (edu: Omit<Education, 'id'>) => void;
+  onDelete: (id: string) => void;
+}
+
+export function EducationSection({ education, onAdd, onDelete }: EducationSectionProps) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ institutionName: '', degree: '', qualification: '', fieldOfStudy: '', graduationYear: '' });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAdd({ ...form });
+    setForm({ institutionName: '', degree: '', qualification: '', fieldOfStudy: '', graduationYear: '' });
+    setShowForm(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider">Education History</h3>
+        <button onClick={() => setShowForm(!showForm)} className="px-3 py-1.5 bg-[#ccd5ae] text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer">
+          {showForm ? 'Close Form' : 'Add Education'}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="bg-neutral-50 border border-neutral-200 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {(['institutionName', 'degree', 'qualification', 'fieldOfStudy', 'graduationYear'] as const).map((f) => (
+            <div key={f}>
+              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+                {f === 'institutionName' ? 'Institution Name' : f === 'graduationYear' ? 'Graduation Year' : f.charAt(0).toUpperCase() + f.slice(1).replace(/([A-Z])/g, ' $1')}
+              </label>
+              <input required type="text" value={form[f]} onChange={(e) => setForm({ ...form, [f]: e.target.value })} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs" />
+            </div>
+          ))}
+          <div className="flex items-end">
+            <button type="submit" className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 rounded-xl text-xs font-bold transition-all w-full cursor-pointer">Save Record</button>
+          </div>
+        </form>
+      )}
+
+      {education.length === 0 ? (
+        <div className="text-center text-neutral-400 text-xs py-6">No education records provided.</div>
+      ) : (
+        <div className="space-y-4">
+          {education.map((edu) => (
+            <div key={edu.id} className="p-4 border border-neutral-200 rounded-2xl flex items-center justify-between">
+              <div>
+                <h4 className="font-extrabold text-neutral-900 text-sm">
+                  {edu.degree} &bull; <span className="font-medium text-xs text-neutral-500">{edu.qualification}</span>
+                </h4>
+                <p className="text-xs text-neutral-600 mt-1">{edu.institutionName}</p>
+                <span className="text-[10px] text-neutral-400 font-bold block mt-1">
+                  Field: {edu.fieldOfStudy} | Class of {edu.graduationYear}
+                </span>
+              </div>
+              <button onClick={() => onDelete(edu.id)} className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer">Delete</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
