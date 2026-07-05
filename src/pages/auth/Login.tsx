@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import workTimeSvg from '../../assets/work_time.svg';
 
 const loginSchema = z.object({
@@ -13,10 +14,14 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState('');
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -26,10 +31,42 @@ export default function Login() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
-    // Simulated authentication
-    console.log('Login Submitted:', data);
-    alert(`Logged in successfully with email: ${data.email}`);
+  const onSubmit = async (data: LoginFormValues) => {
+    setApiError('');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          rememberMe: data.rememberMe ?? false,
+        }),
+      });
+
+      const body = await res.json();
+
+      if (!res.ok) {
+        // Surface server validation errors to specific fields
+        if (body.errors?.email) {
+          setError('email', { message: body.errors.email[0] });
+        }
+        if (body.errors?.password) {
+          setError('password', { message: body.errors.password[0] });
+        }
+        setApiError(body.message || 'Login failed. Please try again.');
+        return;
+      }
+
+      // ✅ Store token + redirect on success
+      if (body.data?.token) {
+        localStorage.setItem('token', body.data.token);
+      }
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setApiError('Network error. Please check your connection and try again.');
+    }
   };
 
   return (
@@ -65,6 +102,12 @@ export default function Login() {
           <div className="my-auto">
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Hello,</h2>
             <h1 className="text-4xl font-extrabold text-indigo-950 tracking-tight mb-8">Welcome back</h1>
+
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-4 py-3 rounded-xl mb-4">
+                {apiError}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Email Field */}

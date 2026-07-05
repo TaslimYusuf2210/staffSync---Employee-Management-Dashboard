@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import hrRepSvg from '../../assets/hr_rep.svg';
 
 const registerSchema = z.object({
@@ -21,10 +22,14 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function CreateAccount() {
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState('');
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -37,10 +42,40 @@ export default function CreateAccount() {
     },
   });
 
-  const onSubmit = (data: RegisterFormValues) => {
-    // Simulated registration
-    console.log('Registration Submitted:', data);
-    alert(`Account created successfully for company: ${data.companyName} (${data.email})`);
+  const onSubmit = async (data: RegisterFormValues) => {
+    setApiError('');
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: data.companyName,
+          email: data.email,
+          description: data.description,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+          agreeTerms: data.agreeTerms,
+        }),
+      });
+
+      const body = await res.json();
+
+      if (!res.ok) {
+        if (body.errors?.email) setError('email', { message: body.errors.email[0] });
+        if (body.errors?.password) setError('password', { message: body.errors.password[0] });
+        if (body.errors?.companyName) setError('companyName', { message: body.errors.companyName[0] });
+        setApiError(body.message || 'Registration failed. Please try again.');
+        return;
+      }
+
+      if (body.data?.token) {
+        localStorage.setItem('token', body.data.token);
+      }
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setApiError('Network error. Please check your connection and try again.');
+    }
   };
 
   return (
@@ -76,6 +111,12 @@ export default function CreateAccount() {
           <div className="flex-1">
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Join us,</h2>
             <h1 className="text-4xl font-extrabold text-indigo-950 tracking-tight mb-8">Create account</h1>
+
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-4 py-3 rounded-xl mb-4">
+                {apiError}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Company Name Field */}
