@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
+import { authApi, ApiError } from '../../services/api';
 import workTimeSvg from '../../assets/work_time.svg';
 
 const loginSchema = z.object({
@@ -35,37 +36,30 @@ export default function Login() {
     setApiError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          rememberMe: data.rememberMe ?? false,
-        }),
+      const res = await authApi.login({
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe ?? false,
       });
 
-      const body = await res.json();
-
-      if (!res.ok) {
-        // Surface server validation errors to specific fields
-        if (body.errors?.email) {
-          setError('email', { message: body.errors.email[0] });
-        }
-        if (body.errors?.password) {
-          setError('password', { message: body.errors.password[0] });
-        }
-        setApiError(body.message || 'Login failed. Please try again.');
-        return;
-      }
-
       // ✅ Store token + redirect on success
-      if (body.data?.token) {
-        localStorage.setItem('token', body.data.token);
+      if (res.data?.token) {
+        localStorage.setItem('token', res.data.token);
       }
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setApiError('Network error. Please check your connection and try again.');
+      if (err instanceof ApiError) {
+        // Surface server validation errors to specific fields
+        if (err.errors?.email) {
+          setError('email', { message: err.errors.email[0] });
+        }
+        if (err.errors?.password) {
+          setError('password', { message: err.errors.password[0] });
+        }
+        setApiError(err.message || 'Login failed. Please try again.');
+      } else {
+        setApiError('Network error. Please check your connection and try again.');
+      }
     }
   };
 

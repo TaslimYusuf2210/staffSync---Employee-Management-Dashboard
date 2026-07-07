@@ -12,11 +12,16 @@ import Login from "./pages/auth/Login";
 import Reports from "./pages/reports/Reports";
 import Settings from "./pages/settings/Settings";
 import "./App.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
         <Routes>
           {/* Auth routes (no sidebar) */}
           <Route path="/login" element={<Login />} />
@@ -38,6 +43,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
+      </QueryClientProvider>
     </AppProvider>
   );
 }

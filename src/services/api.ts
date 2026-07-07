@@ -1,7 +1,9 @@
+import axios, { AxiosError } from 'axios';
+
 /**
- * API Service — centralized HTTP client.
+ * API Service — centralized HTTP client powered by Axios.
  *
- * The backend person just needs to update BASE_URL and the
+ * The backend person just needs to update VITE_API_BASE_URL and the
  * real endpoints; everything here is already wired into the forms.
  */
 
@@ -36,35 +38,51 @@ function getToken(): string | null {
   }
 }
 
+// ─── Axios Instance ──────────────────────────────────────────────────
+
+const apiClient = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// ─── Request Interceptor — attach auth token ─────────────────────────
+
+apiClient.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// ─── Response Interceptor — normalize errors ─────────────────────────
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<ApiResponse>) => {
+    const status = error.response?.status ?? 0;
+    const body = error.response?.data;
+    throw new ApiError(
+      status,
+      body?.message ?? error.message ?? 'Something went wrong',
+      body?.errors,
+    );
+  },
+);
+
+// ─── Generic request helper ──────────────────────────────────────────
+
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: { method?: string; data?: unknown; params?: Record<string, unknown> } = {},
 ): Promise<ApiResponse<T>> {
-  const token = getToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> | undefined),
-  };
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
+  const response = await apiClient.request<ApiResponse<T>>({
+    url: endpoint,
+    method: options.method ?? 'GET',
+    data: options.data,
+    params: options.params,
   });
-
-  const body: ApiResponse<T> = await res.json().catch(() => ({
-    success: false,
-    message: 'Unable to parse server response',
-  }));
-
-  if (!res.ok) {
-    throw new ApiError(res.status, body.message ?? 'Something went wrong', body.errors);
-  }
-
-  return body;
+  return response.data;
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────
@@ -108,30 +126,30 @@ export const authApi = {
   login: (payload: LoginPayload) =>
     request<LoginResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      data: payload,
     }),
 
   register: (payload: RegisterPayload) =>
     request<RegisterResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      data: payload,
     }),
 
   forgotPassword: (email: string) =>
     request<{ message: string }>('/auth/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      data: { email },
     }),
 
   changePassword: (payload: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
     request<{ message: string }>('/auth/change-password', {
       method: 'PUT',
-      body: JSON.stringify(payload),
+      data: payload,
     }),
 };
 
 // ─── Generic ─────────────────────────────────────────────────────────
 
 /** Convenience export for other API calls the backend will provide. */
-export { request, ApiError };
+export { request, ApiError, apiClient };
 export type { ApiResponse };
