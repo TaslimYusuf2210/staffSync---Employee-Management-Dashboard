@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { Toaster } from "./ui/sonner";
 export default function Layout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -25,6 +26,8 @@ export default function Layout() {
           <Sidebar isDrawer={true} onClose={() => setMobileSidebarOpen(false)} />
         </aside>
       )}
+
+      <Toaster />
 
       {/* Main Content */}
       <div className="flex-1 min-w-0 flex flex-col h-screen">

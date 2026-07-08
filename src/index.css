@@ -23,6 +23,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* shadcn/ui CSS variables */
+  --popover: #ffffff;
+  --popover-foreground: #334155;
+  --border: #e2e8f0;
+  --radius: 0.75rem;
 }
 
 body {

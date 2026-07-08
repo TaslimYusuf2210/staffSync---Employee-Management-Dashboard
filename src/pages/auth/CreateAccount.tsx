@@ -4,6 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import hrRepSvg from '../../assets/hr_rep.svg';
+import { useMutation } from '@tanstack/react-query';
+import { register } from '../../services/auth';
+import { toast } from 'sonner';
+import { Toaster } from '../../components/ui/sonner';
 
 const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),
@@ -31,7 +35,6 @@ export default function CreateAccount() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setError,
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
