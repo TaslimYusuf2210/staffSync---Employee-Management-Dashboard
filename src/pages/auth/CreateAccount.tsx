@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
 import hrRepSvg from '../../assets/hr_rep.svg';
 import { useMutation } from '@tanstack/react-query';
-import { registerAccount } from '../../services/auth';
+import { registerAccount, sendOtp, verifyOtp } from '../../services/auth';
 import { toast } from 'sonner';
 import { Hourglass } from 'ldrs/react'
 import 'ldrs/react/Hourglass.css'
@@ -24,6 +24,30 @@ export default function CreateAccount() {
   const [step, setStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
+  const { mutateAsync: handleSendOtp, isPending: isSendingOtp } = useMutation({
+    mutationFn: sendOtp,
+    onSuccess: () => {
+      toast.success('OTP sent successfully! Please check your email.');
+      setStep(1);
+      setCompletedSteps((prev) => new Set(prev).add(0));
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'An error occurred. Please try again.');
+    },
+  });
+
+  const { mutateAsync: handleVerifyOtp, isPending: isVerifyingOtp } = useMutation({
+    mutationFn: verifyOtp,
+    onSuccess: () => {
+      toast.success('OTP verified successfully!');
+      setStep(2);
+      setCompletedSteps((prev) => new Set(prev).add(1));
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'An error occurred. Please try again.');
+    },
+  });
+
   const { mutateAsync: registerUser, isPending } = useMutation({
     mutationFn: registerAccount,
     onSuccess: () => {
@@ -32,8 +56,7 @@ export default function CreateAccount() {
       setCompletedSteps((prev) => new Set(prev).add(4));
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 'An error occurred. Please try again.';
-      toast.error(errorMessage);
+      toast.error(error?.message || 'An error occurred. Please try again.');
     },
   });
 
@@ -72,6 +95,19 @@ export default function CreateAccount() {
 
     const newCompleted = new Set(completedSteps).add(step);
     setCompletedSteps(newCompleted);
+
+    if (step === 0) {
+      await handleSendOtp({ email: methods.getValues('email') });
+      return;
+    }
+
+    if (step === 1) {
+      await handleVerifyOtp({
+        email: methods.getValues('email'),
+        otp: methods.getValues('otp'),
+      });
+      return;
+    }
 
     if (step === 4) {
       const data = methods.getValues();
@@ -149,10 +185,10 @@ export default function CreateAccount() {
                   >
                     ← Back
                   </button>
-                  <button type="button" onClick={handleNext} disabled={isPending}
+                  <button type="button" onClick={handleNext} disabled={isPending || isSendingOtp || isVerifyingOtp}
                     className="px-6 py-2.5 bg-[#faedcd] hover:bg-[#ccd5ae] text-neutral-950 font-bold rounded-xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLastStep && isPending ? <Hourglass size="18" color="black" /> : isLastStep ? 'Create Account' : 'Next →'}
+                    {step === 0 && isSendingOtp ? <Hourglass size="18" color="black" /> : step === 1 && isVerifyingOtp ? <Hourglass size="18" color="black" /> : isLastStep && isPending ? <Hourglass size="18" color="black" /> : isLastStep ? 'Create Account' : 'Next →'}
                   </button>
                 </div>
               )}

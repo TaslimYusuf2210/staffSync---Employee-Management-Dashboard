@@ -30,6 +30,15 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+export interface SendOtpPayload {
+  email: string;
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  otp: string;
+}
+
 export interface RegisterResponse {
   token: string;
   user: AuthUser;

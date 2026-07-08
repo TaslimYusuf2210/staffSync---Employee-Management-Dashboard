@@ -13,7 +13,7 @@ import type {
  * real endpoints; everything here is already wired into the forms.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api';
 
 interface ApiResponse<T = unknown> {
   success: boolean;
