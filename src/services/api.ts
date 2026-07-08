@@ -1,4 +1,10 @@
 import axios, { AxiosError } from 'axios';
+import type {
+  LoginPayload,
+  RegisterPayload,
+  LoginResponse,
+  RegisterResponse,
+} from '../types/auth';
 
 /**
  * API Service — centralized HTTP client powered by Axios.
@@ -86,41 +92,6 @@ async function request<T>(
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-  rememberMe?: boolean;
-}
-
-export interface RegisterPayload {
-  companyName: string;
-  email: string;
-  description: string;
-  password: string;
-  confirmPassword: string;
-  agreeTerms: boolean;
-}
-
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  profilePicture?: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  expiresIn: number;
-  user: AuthUser;
-}
-
-export interface RegisterResponse {
-  token: string;
-  user: AuthUser;
-  company: { id: string; name: string; description: string };
-}
 
 export const authApi = {
   login: (payload: LoginPayload) =>

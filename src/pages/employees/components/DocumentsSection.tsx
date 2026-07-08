@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Employee, Document } from '../../../context/AppContext';
+import type { Employee, Document } from '../../../types/dashboard/employee';
 
 interface DocumentsSectionProps {
   documents: Employee['documents'];

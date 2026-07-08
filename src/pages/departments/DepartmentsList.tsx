@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
-import type { Department } from "../../context/AppContext";
+import type { Department } from "../../types/dashboard/department";
 export default function DepartmentsList() {
   const {
     departments,

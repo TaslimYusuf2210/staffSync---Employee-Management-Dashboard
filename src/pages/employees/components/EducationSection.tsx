@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Employee, Education } from '../../../context/AppContext';
+import type { Employee, Education } from '../../../types/dashboard/employee';
 
 interface EducationSectionProps {
   education: Employee['education'];

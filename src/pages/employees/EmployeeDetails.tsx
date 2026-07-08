@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import type { Employee, Education, Document, Note } from '../../context/AppContext';
+import type { Employee, Education, Document, Note, TabType } from '../../types/dashboard/employee';
 import { Avatar } from '../../components/ui/avatar';
 import { StatusBadge } from '../../components/StatusBadge';
 import { OverviewTab } from './components/OverviewTab';
@@ -12,16 +12,6 @@ import { BankTab } from './components/BankTab';
 import { EducationSection } from './components/EducationSection';
 import { DocumentsSection } from './components/DocumentsSection';
 import { NotesSection } from './components/NotesSection';
-
-type TabType =
-  | 'overview'
-  | 'personal'
-  | 'employment'
-  | 'education'
-  | 'salary'
-  | 'bank'
-  | 'documents'
-  | 'notes';
 
 const TABS: { key: TabType; label: string }[] = [
   { key: 'overview', label: 'overview' },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Employee } from '../../../context/AppContext';
-import type { Department } from '../../../context/AppContext';
+import type { Employee } from '../../../types/dashboard/employee';
+import type { Department } from '../../../types/dashboard/department';
 
 interface EmploymentTabProps {
   employee: Employee;
