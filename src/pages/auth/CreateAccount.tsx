@@ -14,8 +14,13 @@ const registerSchema = z.object({
   phoneNumber: z.string().min(10, { message: 'Please enter a valid phone number' }),
   address: z.string().min(1, { message: 'Please enter your address' }),
   description: z.string().min(1, { message: 'Please select a company description / type' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
-  confirmPassword: z.string().min(6, { message: 'Password confirmation must be at least 6 characters long' }),
+  password: z.string()
+    .min(8, { message: 'Password must be at least 8 characters long' })
+    .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+    .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+    .regex(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' }),
+  confirmPassword: z.string().min(1, { message: 'Password confirmation is required' }),
   agreeTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms and conditions',
   }),
@@ -197,10 +202,70 @@ function CompanyInfoStep() {
   );
 }
 
+// ─── Password Strength ───────────────────────────────────────────────
+
+const PASSWORD_RULES = [
+  { label: 'At least 8 characters', test: (v: string) => v.length >= 8 },
+  { label: 'One uppercase letter', test: (v: string) => /[A-Z]/.test(v) },
+  { label: 'One lowercase letter', test: (v: string) => /[a-z]/.test(v) },
+  { label: 'One number', test: (v: string) => /[0-9]/.test(v) },
+  { label: 'One special character', test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+];
+
+function PasswordStrength({ value }: { value: string }) {
+  const passed = PASSWORD_RULES.filter((r) => r.test(value)).length;
+  const strength = value.length === 0 ? 0 : passed / PASSWORD_RULES.length;
+
+  const barColor =
+    strength === 0 ? 'bg-slate-200' :
+    strength <= 0.4 ? 'bg-red-400' :
+    strength <= 0.8 ? 'bg-amber-400' :
+    'bg-[#ccd5ae]';
+
+  const strengthLabel =
+    strength === 0 ? '' :
+    strength <= 0.4 ? 'Weak' :
+    strength <= 0.8 ? 'Fair' :
+    'Strong';
+
+  return (
+    <div className="mt-2 space-y-2">
+      {/* Strength bar */}
+      {value.length > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+              style={{ width: `${(passed / PASSWORD_RULES.length) * 100}%` }}
+            />
+          </div>
+          <span className="text-[10px] font-semibold text-slate-400 min-w-[2.5rem] text-right">{strengthLabel}</span>
+        </div>
+      )}
+      {/* Rules checklist */}
+      <div className="grid grid-cols-1 gap-1">
+        {PASSWORD_RULES.map((rule, i) => {
+          const met = rule.test(value);
+          return (
+            <div key={i} className="flex items-center gap-2 text-xs">
+              <span className={`shrink-0 transition-colors duration-200 ${value.length === 0 ? 'text-slate-300' : met ? 'text-green-600' : 'text-red-400'}`}>
+                {value.length === 0 ? '○' : met ? '✓' : '✗'}
+              </span>
+              <span className={`transition-colors duration-200 ${value.length === 0 ? 'text-slate-400' : met ? 'text-slate-600' : 'text-slate-400'}`}>
+                {rule.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Step 3: Password ────────────────────────────────────────────────
 
 function PasswordStep() {
-  const { register, formState: { errors } } = useFormContext<RegisterFormValues>();
+  const { register, formState: { errors }, watch } = useFormContext<RegisterFormValues>();
+  const passwordValue = watch('password') ?? '';
   return (
     <div className="space-y-6">
       <div className="relative group">
@@ -213,6 +278,7 @@ function PasswordStep() {
           Password
         </label>
         {errors.password && <p className="text-red-500 text-xs mt-1 font-medium">{errors.password.message}</p>}
+        <PasswordStrength value={passwordValue} />
       </div>
       <div className="relative group">
         <input type="password" id="confirmPassword" placeholder="" {...register('confirmPassword')}
@@ -332,8 +398,12 @@ export default function CreateAccount() {
   };
 
   const handleNext = async () => {
-    const fields = STEPS[step].fields as string[];
-    const isValid = await methods.trigger(fields as any);
+    // On review step, validate ALL fields across every step
+    const fields = step === 3
+      ? (['email', 'companyName', 'description', 'phoneNumber', 'address', 'password', 'confirmPassword', 'agreeTerms'] as string[])
+      : (STEPS[step].fields as unknown as string[]);
+
+    const isValid = await methods.trigger(fields);
     if (!isValid) return;
 
     const newCompleted = new Set(completedSteps).add(step);
