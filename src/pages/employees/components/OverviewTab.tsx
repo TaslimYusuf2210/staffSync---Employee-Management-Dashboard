@@ -1,4 +1,4 @@
-import type { Employee } from '../../../context/AppContext';
+import type { Employee } from '../../../types/dashboard/employee';
 
 export function OverviewTab({ employee }: { employee: Employee }) {
   const fields = [

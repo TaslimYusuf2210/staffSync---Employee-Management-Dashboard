@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
+  otp: z.string().length(6, { message: 'OTP must be exactly 6 digits' }).regex(/^\d{6}$/, { message: 'OTP must be a 6-digit code' }),
   phoneNumber: z.string().min(10, { message: 'Please enter a valid phone number' }),
   address: z.string().min(1, { message: 'Please enter your address' }),
   description: z.string().min(1, { message: 'Please select a company description / type' }),
@@ -25,6 +26,7 @@ export type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const STEPS = [
   { label: 'Email', fields: ['email'] as const },
+  { label: 'OTP', fields: ['otp'] as const },
   { label: 'Company', fields: ['companyName', 'description', 'phoneNumber', 'address'] as const },
   { label: 'Password', fields: ['password', 'confirmPassword'] as const },
   { label: 'Review', fields: ['agreeTerms'] as const },
@@ -33,6 +35,7 @@ export const STEPS = [
 
 export const stepMessages = [
   { heading: 'Start your journey', subtext: 'Enter your email to begin creating your StaffSync account.' },
+  { heading: 'Verify your email', subtext: 'Enter the 6-digit code sent to your email address.' },
   { heading: 'About your company', subtext: 'Tell us about your organization so we can tailor the experience.' },
   { heading: 'Secure your account', subtext: 'Create a strong password to protect your account.' },
   { heading: 'Almost there!', subtext: 'Review your information and agree to the terms to complete registration.' },

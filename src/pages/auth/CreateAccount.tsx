@@ -12,6 +12,7 @@ import 'ldrs/react/Hourglass.css'
 import { registerSchema, type RegisterFormValues, STEPS, stepMessages } from './schemas/registerSchema';
 import { Stepper } from './components/Stepper';
 import { EmailStep } from './components/steps/EmailStep';
+import { OtpStep } from './components/steps/OtpStep';
 import { CompanyInfoStep } from './components/steps/CompanyInfoStep';
 import { PasswordStep } from './components/steps/PasswordStep';
 import { ReviewStep } from './components/steps/ReviewStep';
@@ -27,8 +28,8 @@ export default function CreateAccount() {
     mutationFn: registerAccount,
     onSuccess: () => {
       toast.success('Account created successfully! Please check your email for verification.');
-      setStep(4);
-      setCompletedSteps((prev) => new Set(prev).add(3));
+      setStep(5);
+      setCompletedSteps((prev) => new Set(prev).add(4));
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || 'An error occurred. Please try again.';
@@ -41,6 +42,7 @@ export default function CreateAccount() {
     defaultValues: {
       companyName: '',
       email: '',
+      otp: '',
       phoneNumber: '',
       address: '',
       description: '',
@@ -50,8 +52,8 @@ export default function CreateAccount() {
     },
   });
 
-  const isLastStep = step === 3;
-  const isSuccessStep = step === 4;
+  const isLastStep = step === 4;
+  const isSuccessStep = step === 5;
 
   const handleStepClick = (targetStep: number) => {
     if (targetStep <= step || completedSteps.has(targetStep - 1)) {
@@ -61,8 +63,8 @@ export default function CreateAccount() {
 
   const handleNext = async () => {
     // On review step, validate ALL fields across every step
-    const fields = (step === 3
-      ? ['email', 'companyName', 'description', 'phoneNumber', 'address', 'password', 'confirmPassword', 'agreeTerms']
+    const fields = (step === 4
+      ? ['email', 'otp', 'companyName', 'description', 'phoneNumber', 'address', 'password', 'confirmPassword', 'agreeTerms']
       : STEPS[step].fields) as unknown as Parameters<typeof methods.trigger>[0];
 
     const isValid = await methods.trigger(fields);
@@ -71,7 +73,7 @@ export default function CreateAccount() {
     const newCompleted = new Set(completedSteps).add(step);
     setCompletedSteps(newCompleted);
 
-    if (step === 3) {
+    if (step === 4) {
       const data = methods.getValues();
       const payload = {
         companyName: data.companyName,
@@ -134,10 +136,11 @@ export default function CreateAccount() {
           <FormProvider {...methods}>
             <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
               {step === 0 && <EmailStep />}
-              {step === 1 && <CompanyInfoStep />}
-              {step === 2 && <PasswordStep />}
-              {step === 3 && <ReviewStep />}
-              {step === 4 && <SuccessStep />}
+              {step === 1 && <OtpStep />}
+              {step === 2 && <CompanyInfoStep />}
+              {step === 3 && <PasswordStep />}
+              {step === 4 && <ReviewStep />}
+              {step === 5 && <SuccessStep />}
 
               {!isSuccessStep && (
                 <div className="flex items-center justify-between pt-2">

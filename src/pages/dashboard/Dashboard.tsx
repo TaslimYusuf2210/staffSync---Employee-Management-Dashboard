@@ -2,7 +2,6 @@ import { useApp } from '../../context/AppContext';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/PageHeader';
 import { StatCard } from '../../components/StatCard';
-import { StatusBadge } from '../../components/StatusBadge';
 import { Avatar } from '../../components/ui/avatar';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 
