@@ -1,4 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  if (!token) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
 import { AppProvider } from "./context/AppContext";
 import CreateAccount from "./pages/auth/CreateAccount";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -13,7 +19,7 @@ import Reports from "./pages/reports/Reports";
 import Settings from "./pages/settings/Settings";
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import { Toaster } from "./components/ui/sonner";
 
 const queryClient = new QueryClient();
 
@@ -27,8 +33,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/create-account" element={<CreateAccount />} />
 
-          {/* App routes (with sidebar layout) */}
-          <Route path="/dashboard" element={<Layout />}>
+          {/* App routes (with sidebar layout + auth protection) */}
+          <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="employees" element={<EmployeesList />} />
             <Route path="employees/create" element={<EmployeeCreate />} />
@@ -42,6 +48,7 @@ function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        <Toaster />
       </BrowserRouter>
       </QueryClientProvider>
     </AppProvider>

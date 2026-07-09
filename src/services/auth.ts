@@ -1,5 +1,5 @@
 import { request } from './api';
-import type { RegisterPayload, RegisterResponse, SendOtpPayload, VerifyOtpPayload } from '../types/auth';
+import type { LoginPayload, LoginResponse, RegisterPayload, RegisterResponse, SendOtpPayload, VerifyOtpPayload } from '../types/auth';
 
 export const registerAccount = (payload: RegisterPayload) =>
   request<RegisterResponse>('/auth/register', {
@@ -15,6 +15,12 @@ export const sendOtp = (payload: SendOtpPayload) =>
 
 export const verifyOtp = (payload: VerifyOtpPayload) =>
   request<{ message: string }>('/auth/verify-otp', {
+    method: 'POST',
+    data: payload,
+  });
+
+export const login = (payload: LoginPayload) =>
+  request<LoginResponse>('/auth/login', {
     method: 'POST',
     data: payload,
   });

@@ -1,10 +1,13 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
-import { authApi, ApiError } from '../../services/api';
 import workTimeSvg from '../../assets/work_time.svg';
+import { login } from '../../services/auth';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Hourglass } from 'ldrs/react'
+import 'ldrs/react/Hourglass.css'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -16,13 +19,30 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
-  const [apiError, setApiError] = useState('');
+  const { mutateAsync: loginUser, isPending: isLoggingIn } = useMutation({
+    mutationFn: login,
+    onSuccess: (data, variables) => {
+      toast.success('Login successful! Redirecting to dashboard...');
+      if (data?.data?.token) {
+        if (variables.rememberMe) {
+          localStorage.setItem('token', data.data.token);
+        } else {
+          sessionStorage.setItem('token', data.data.token);
+        }
+      }
+      navigate('/dashboard', { replace: true });
+      console.log('Login response:', data);
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'An error occurred. Please try again.');
+    },
+  });
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
+    watch,
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -32,35 +52,15 @@ export default function Login() {
     },
   });
 
+  console.log('rememberMe:', watch('rememberMe'));
+
   const onSubmit = async (data: LoginFormValues) => {
-    setApiError('');
-
-    try {
-      const res = await authApi.login({
-        email: data.email,
-        password: data.password,
-        rememberMe: data.rememberMe ?? false,
-      });
-
-      // ✅ Store token + redirect on success
-      if (res.data?.token) {
-        localStorage.setItem('token', res.data.token);
-      }
-      navigate('/dashboard', { replace: true });
-    } catch (err) {
-      if (err instanceof ApiError) {
-        // Surface server validation errors to specific fields
-        if (err.errors?.email) {
-          setError('email', { message: err.errors.email[0] });
-        }
-        if (err.errors?.password) {
-          setError('password', { message: err.errors.password[0] });
-        }
-        setApiError(err.message || 'Login failed. Please try again.');
-      } else {
-        setApiError('Network error. Please check your connection and try again.');
-      }
-    }
+    const payload = {
+      email: data.email,
+      password: data.password,
+      rememberMe: data.rememberMe,
+    };
+    loginUser(payload);
   };
 
   return (
@@ -96,12 +96,6 @@ export default function Login() {
           <div className="my-auto">
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Hello,</h2>
             <h1 className="text-4xl font-extrabold text-indigo-950 tracking-tight mb-8">Welcome back</h1>
-
-            {apiError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-4 py-3 rounded-xl mb-4">
-                {apiError}
-              </div>
-            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Email Field */}
@@ -170,10 +164,10 @@ export default function Login() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isLoggingIn}
                 className="w-full py-3.5 px-4 bg-[#faedcd] hover:bg-[#ccd5ae] text-neutral-950 font-bold rounded-xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50"
               >
-                {isSubmitting ? 'Signing in...' : 'Login'}
+                {isLoggingIn ? <Hourglass size="18" color="black" /> : 'Login'}
               </button>
             </form>
 
