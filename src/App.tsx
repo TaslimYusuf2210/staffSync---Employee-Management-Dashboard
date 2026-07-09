@@ -34,7 +34,7 @@ function App() {
           <Route path="/create-account" element={<CreateAccount />} />
 
           {/* App routes (with sidebar layout + auth protection) */}
-          <Route path="/dashboard" element={<Layout />}>
+          <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="employees" element={<EmployeesList />} />
             <Route path="employees/create" element={<EmployeeCreate />} />
