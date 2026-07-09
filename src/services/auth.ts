@@ -1,5 +1,5 @@
 import { request } from './api';
-import type { LoginPayload, LoginResponse, RegisterPayload, RegisterResponse, SendOtpPayload, VerifyOtpPayload } from '../types/auth';
+import type { CurrentUserResponse, LoginPayload, LoginResponse, RegisterPayload, RegisterResponse, SendOtpPayload, VerifyOtpPayload } from '../types/auth';
 
 export const registerAccount = (payload: RegisterPayload) =>
   request<RegisterResponse>('/auth/register', {
@@ -23,4 +23,9 @@ export const login = (payload: LoginPayload) =>
   request<LoginResponse>('/auth/login', {
     method: 'POST',
     data: payload,
+  });
+
+export const getCurrentUser = () =>
+  request<CurrentUserResponse>('/auth/me', {
+    method: 'GET',
   });

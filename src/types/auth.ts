@@ -48,3 +48,25 @@ export interface RegisterResponse {
     description: string;
   };
 }
+
+export interface CompanyInfo {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  description: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  profilePicture: string;
+  company: CompanyInfo;
+}
+
+export interface CurrentUserResponse {
+  user: CurrentUser;
+}

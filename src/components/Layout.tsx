@@ -1,8 +1,42 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { useQuery } from "@tanstack/react-query";
+import { getCurrentUser } from "../services/auth";
+import { toast } from "sonner";
+import {useCurrentUser} from "../hooks/useCurrentUser";
+
 export default function Layout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const { data: user, isLoading: isFetchingUser } = useCurrentUser();
+
+  if (isFetchingUser) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex w-full">
+        {/* Skeleton sidebar */}
+        <aside className="hidden lg:block lg:w-64 lg:shrink-0 md:block md:relative p-6 space-y-6">
+          <div className="h-8 bg-slate-200 rounded-lg animate-pulse w-24" />
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-4 bg-slate-200 rounded animate-pulse w-full" />
+            ))}
+          </div>
+        </aside>
+
+        {/* Skeleton main content */}
+        <div className="flex-1 p-8 space-y-6">
+          <div className="h-10 bg-slate-200 rounded-lg animate-pulse w-64" />
+          <div className="grid grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-28 bg-slate-200 rounded-xl animate-pulse" />
+            ))}
+          </div>
+          <div className="h-64 bg-slate-200 rounded-xl animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 flex w-full relative">
