@@ -1,16 +1,13 @@
 import { useFormContext } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import type { RegisterFormValues } from '../../schemas/registerSchema';
+import celebrationSvg from '../../../../assets/celebration.svg';
 
 <style>{`
   @keyframes popIn {
     0% { transform: scale(0); opacity: 0; }
     60% { transform: scale(1.15); }
     100% { transform: scale(1); opacity: 1; }
-  }
-  @keyframes drawCheck {
-    from { stroke-dashoffset: 24; }
-    to { stroke-dashoffset: 0; }
   }
   @keyframes floatUp {
     from { opacity: 0; transform: translateY(24px); }
@@ -35,18 +32,9 @@ export function SuccessStep() {
         <span className="absolute bottom-8 right-8 w-1.5 h-1.5 rounded-full bg-[#ccd5ae]" style={{ animation: 'sparkle 2s ease-in-out 0.8s infinite' }} />
       </div>
 
-      {/* Animated checkmark circle */}
-      <div
-        className="w-16 h-16 rounded-full bg-[#ccd5ae] flex items-center justify-center mb-4"
-        style={{ animation: 'popIn 0.5s ease-out both' }}
-      >
-        <svg className="w-8 h-8 text-neutral-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"
-            strokeDasharray={24}
-            style={{ animation: 'drawCheck 0.4s ease-out 0.3s both' }}
-          />
-        </svg>
+      {/* Celebration illustration */}
+      <div className="mb-4" style={{ animation: 'popIn 0.5s ease-out both' }}>
+        <img src={celebrationSvg} alt="Celebration" className="w-32 h-32 object-contain" />
       </div>
 
       {/* Welcome text */}
