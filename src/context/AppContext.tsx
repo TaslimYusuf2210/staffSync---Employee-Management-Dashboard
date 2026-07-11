@@ -198,6 +198,7 @@ const initialSettings: Settings = {
     email: 'contact@rockscompany.com',
     phoneNumber: '+1 312 908 1234',
     address: '123 Avenue block, Chicago, IL',
+    description: 'Corporate Headquarters',
   },
 };
 

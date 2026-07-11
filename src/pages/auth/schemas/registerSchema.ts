@@ -4,7 +4,9 @@ export const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
   otp: z.string().length(6, { message: 'OTP must be exactly 6 digits' }).regex(/^\d{6}$/, { message: 'OTP must be a 6-digit code' }),
-  phoneNumber: z.string().min(10, { message: 'Please enter a valid phone number' }),
+  phoneNumber: z.string()
+    .length(11, { message: 'Phone number must be exactly 11 digits' })
+    .regex(/^(?:\+234|234|0)(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/, { message: 'Please enter a valid Nigerian phone number' }),
   address: z.string().min(1, { message: 'Please enter your address' }),
   description: z.string().min(1, { message: 'Please select a company description / type' }),
   password: z.string()

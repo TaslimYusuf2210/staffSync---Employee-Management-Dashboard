@@ -6,11 +6,17 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Hourglass } from 'ldrs/react'
 import 'ldrs/react/Hourglass.css'
+import { PasswordStrength } from '../../auth/components/PasswordStrength';
 
 const securitySchema = z
   .object({
     currentPassword: z.string().min(1, { message: 'Current password is required' }),
-    newPassword: z.string().min(6, { message: 'New password must be at least 6 characters' }),
+    newPassword: z.string()
+      .min(8, { message: 'Password must be at least 8 characters long' })
+      .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+      .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+      .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+      .regex(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' }),
     confirmPassword: z.string().min(1, { message: 'Please confirm your new password' }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -34,6 +40,7 @@ export default function SecuritySection() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     reset,
   } = useForm<SecurityFormValues>({
@@ -81,6 +88,7 @@ export default function SecuritySection() {
           {errors.newPassword && (
             <p className="text-red-500 text-[10px] mt-1">{errors.newPassword.message}</p>
           )}
+          <PasswordStrength value={watch('newPassword')} />
         </div>
         <div>
           <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
