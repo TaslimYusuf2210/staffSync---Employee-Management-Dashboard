@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import type { RegisterFormValues } from '../../schemas/registerSchema';
-import celebrationSvg from '../../../../assets/celebration.svg';
+import celebrationSvg from '@/assets/celebration.svg';
 
 <style>{`
   @keyframes popIn {

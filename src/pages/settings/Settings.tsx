@@ -1,77 +1,80 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useApp } from '../../context/AppContext';
+
+const companySchema = z.object({
+  companyName: z.string().min(2, { message: 'Company name must be at least 2 characters' }),
+  companyEmail: z.string().email({ message: 'Please enter a valid email address' }),
+  companyPhone: z.string().min(6, { message: 'Phone number must be at least 6 characters' }),
+  companyAddress: z.string().min(5, { message: 'Address must be at least 5 characters' }),
+});
+
+const securitySchema = z
+  .object({
+    currentPassword: z.string().min(1, { message: 'Current password is required' }),
+    newPassword: z.string().min(6, { message: 'New password must be at least 6 characters' }),
+    confirmPassword: z.string().min(1, { message: 'Please confirm your new password' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+type CompanyFormValues = z.infer<typeof companySchema>;
+type SecurityFormValues = z.infer<typeof securitySchema>;
 
 export default function Settings() {
   const { settings, updateSettings } = useApp();
-  const [activeSection, setActiveSection] = useState<'admin' | 'company' | 'security'>('admin');
+  const [activeSection, setActiveSection] = useState<'company' | 'security'>('company');
 
-  // Admin Profile form state
-  const [adminName, setAdminName] = useState(settings.admin.name);
-  const [adminEmail, setAdminEmail] = useState(settings.admin.email);
+  const {
+    register: registerCompany,
+    handleSubmit: handleSubmitCompany,
+    formState: { errors: companyErrors },
+  } = useForm<CompanyFormValues>({
+    resolver: zodResolver(companySchema),
+    defaultValues: {
+      companyName: settings.company.name,
+      companyEmail: settings.company.email,
+      companyPhone: settings.company.phoneNumber,
+      companyAddress: settings.company.address,
+    },
+  });
 
-  // Company Info form state
-  const [companyName, setCompanyName] = useState(settings.company.name);
-  const [companyEmail, setCompanyEmail] = useState(settings.company.email);
-  const [companyPhone, setCompanyPhone] = useState(settings.company.phoneNumber);
-  const [companyAddress, setCompanyAddress] = useState(settings.company.address);
+  const {
+    register: registerSecurity,
+    handleSubmit: handleSubmitSecurity,
+    formState: { errors: securityErrors },
+    reset: resetSecurity,
+  } = useForm<SecurityFormValues>({
+    resolver: zodResolver(securitySchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
 
-  // Security form state
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const handleSaveAdmin = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateSettings({
-      admin: { ...settings.admin, name: adminName, email: adminEmail },
-    });
-    alert('Admin profile updated successfully.');
-  };
-
-  const handleSaveCompany = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSaveCompany = (data: CompanyFormValues) => {
     updateSettings({
       company: {
-        name: companyName,
-        email: companyEmail,
-        phoneNumber: companyPhone,
-        address: companyAddress,
+        name: data.companyName,
+        email: data.companyEmail,
+        phoneNumber: data.companyPhone,
+        address: data.companyAddress,
       },
     });
     alert('Company information updated successfully.');
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      alert('Passwords do not match.');
-      return;
-    }
-    if (newPassword.length < 6) {
-      alert('New password must be at least 6 characters.');
-      return;
-    }
+  const onChangePassword = (_data: SecurityFormValues) => {
     alert('Password changed successfully (simulated).');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    resetSecurity();
   };
 
   const sections = [
-    {
-      id: 'admin' as const,
-      label: 'Admin Profile',
-      icon: (
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-      ),
-    },
     {
       id: 'company' as const,
       label: 'Company Info',
@@ -108,7 +111,7 @@ export default function Settings() {
       <div>
         <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">Settings</h1>
         <p className="text-sm text-neutral-500 mt-1">
-          Manage your profile, company details, and preferences.
+          Manage your company details and preferences.
         </p>
       </div>
 
@@ -134,67 +137,9 @@ export default function Settings() {
         {/* Settings Content */}
         <div className="flex-1 bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 shadow-sm">
 
-          {/* ADMIN PROFILE */}
-          {activeSection === 'admin' && (
-            <form onSubmit={handleSaveAdmin} className="space-y-6">
-              <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">
-                Admin Profile
-              </h3>
-
-              {/* Profile Picture */}
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-neutral-100 overflow-hidden">
-                  <img
-                    className="w-full h-full object-cover grayscale"
-                    src={settings.admin.profilePicture}
-                    alt="admin avatar"
-                  />
-                </div>
-                <div>
-                  <p className="font-bold text-sm text-neutral-900">{settings.admin.name}</p>
-                  <p className="text-xs text-neutral-400">{settings.admin.email}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={adminName}
-                    onChange={(e) => setAdminName(e.target.value)}
-                    className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4 border-t border-neutral-100">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-sm font-bold rounded-xl transition-all cursor-pointer"
-                >
-                  Save Profile
-                </button>
-              </div>
-            </form>
-          )}
-
           {/* COMPANY INFORMATION */}
           {activeSection === 'company' && (
-            <form onSubmit={handleSaveCompany} className="space-y-6">
+            <form onSubmit={handleSubmitCompany(onSaveCompany)} className="space-y-6">
               <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">
                 Company Information
               </h3>
@@ -206,10 +151,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="text"
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
+                    {...registerCompany('companyName')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
                   />
+                  {companyErrors.companyName && (
+                    <p className="text-red-500 text-[10px] mt-1">{companyErrors.companyName.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
@@ -217,10 +164,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="email"
-                    value={companyEmail}
-                    onChange={(e) => setCompanyEmail(e.target.value)}
+                    {...registerCompany('companyEmail')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
                   />
+                  {companyErrors.companyEmail && (
+                    <p className="text-red-500 text-[10px] mt-1">{companyErrors.companyEmail.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
@@ -228,10 +177,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="text"
-                    value={companyPhone}
-                    onChange={(e) => setCompanyPhone(e.target.value)}
+                    {...registerCompany('companyPhone')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
                   />
+                  {companyErrors.companyPhone && (
+                    <p className="text-red-500 text-[10px] mt-1">{companyErrors.companyPhone.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
@@ -239,10 +190,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="text"
-                    value={companyAddress}
-                    onChange={(e) => setCompanyAddress(e.target.value)}
+                    {...registerCompany('companyAddress')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
                   />
+                  {companyErrors.companyAddress && (
+                    <p className="text-red-500 text-[10px] mt-1">{companyErrors.companyAddress.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -259,7 +212,7 @@ export default function Settings() {
 
           {/* SECURITY */}
           {activeSection === 'security' && (
-            <form onSubmit={handleChangePassword} className="space-y-6">
+            <form onSubmit={handleSubmitSecurity(onChangePassword)} className="space-y-6">
               <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">
                 Change Password
               </h3>
@@ -271,11 +224,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    {...registerSecurity('currentPassword')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-                    required
                   />
+                  {securityErrors.currentPassword && (
+                    <p className="text-red-500 text-[10px] mt-1">{securityErrors.currentPassword.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
@@ -283,11 +237,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    {...registerSecurity('newPassword')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-                    required
                   />
+                  {securityErrors.newPassword && (
+                    <p className="text-red-500 text-[10px] mt-1">{securityErrors.newPassword.message}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
@@ -295,11 +250,12 @@ export default function Settings() {
                   </label>
                   <input
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    {...registerSecurity('confirmPassword')}
                     className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-                    required
                   />
+                  {securityErrors.confirmPassword && (
+                    <p className="text-red-500 text-[10px] mt-1">{securityErrors.confirmPassword.message}</p>
+                  )}
                 </div>
               </div>
 

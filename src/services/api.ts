@@ -36,9 +36,7 @@ class ApiError extends Error {
 
 function getToken(): string | null {
   try {
-    const raw = localStorage.getItem('staffsync_auth');
-    if (!raw) return null;
-    return JSON.parse(raw).token ?? null;
+    return localStorage.getItem('token') ?? sessionStorage.getItem('token') ?? null;
   } catch {
     return null;
   }
