@@ -139,10 +139,10 @@ export default function Sidebar({ onClose, isDrawer = false }: SidebarProps) {
       <div className={`${isDrawer ? "flex" : "hidden md:hidden md:group-hover:flex lg:flex"} my-5 bg-[#fefae0] border border-neutral-100 rounded-xl p-3 items-center justify-between`}>
         <div>
           <h4 className="font-bold text-xs text-neutral-900">
-            {currentUser?.data?.user?.company?.name}
+            {currentUser?.data?.company?.name}
           </h4>
           <p className="text-[10px] text-neutral-400 font-medium mt-0.5">
-            {currentUser?.data?.user?.company?.description}
+            {currentUser?.data?.company?.description}
           </p>
         </div>
         <div className="w-2.5 h-2.5 bg-[#ccd5ae] rounded-full" />

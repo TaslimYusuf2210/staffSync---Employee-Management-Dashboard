@@ -69,4 +69,10 @@ export interface CurrentUser {
 
 export interface CurrentUserResponse {
   user: CurrentUser;
+  company: CompanyInfo;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }

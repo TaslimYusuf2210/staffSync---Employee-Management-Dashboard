@@ -1,0 +1,117 @@
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { changePassword } from '../../../services/auth';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Hourglass } from 'ldrs/react'
+import 'ldrs/react/Hourglass.css'
+
+const securitySchema = z
+  .object({
+    currentPassword: z.string().min(1, { message: 'Current password is required' }),
+    newPassword: z.string().min(6, { message: 'New password must be at least 6 characters' }),
+    confirmPassword: z.string().min(1, { message: 'Please confirm your new password' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+type SecurityFormValues = z.infer<typeof securitySchema>;
+
+export default function SecuritySection() {
+    const { mutateAsync: changePasswordMutation, isPending: isChangingPassword } = useMutation({
+        mutationFn: changePassword,
+        onSuccess: () => {
+            toast.success('Password changed successfully!');
+            reset();
+        },
+        onError: (error: any) => {
+            toast.error(error?.message || 'An error occurred. Please try again.');
+        },
+    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<SecurityFormValues>({
+    resolver: zodResolver(securitySchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
+
+  const onSubmit = ({ currentPassword, newPassword }: SecurityFormValues) => {
+    changePasswordMutation({ currentPassword, newPassword });
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">
+        Change Password
+      </h3>
+
+      <div className="space-y-4 max-w-md">
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            Current Password
+          </label>
+          <input
+            type="password"
+            {...register('currentPassword')}
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
+          />
+          {errors.currentPassword && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.currentPassword.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            New Password
+          </label>
+          <input
+            type="password"
+            {...register('newPassword')}
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
+          />
+          {errors.newPassword && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.newPassword.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            Confirm New Password
+          </label>
+          <input
+            type="password"
+            {...register('confirmPassword')}
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.confirmPassword.message}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4 border-t border-neutral-100">
+        <button
+          disabled={isChangingPassword}
+          type="submit"
+          className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-sm font-bold rounded-xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          {isChangingPassword ? (
+            <>
+              <Hourglass size={16} /> Updating...
+            </>
+          ) : (
+            'Update Password'
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
