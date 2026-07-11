@@ -7,11 +7,27 @@ import { useCurrentUser } from '../../../hooks/useCurrentUser';
 const companySchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters' }),
   companyEmail: z.string().email({ message: 'Please enter a valid email address' }),
-  companyPhone: z.string()
-    .length(11, { message: 'Phone number must be exactly 11 digits' })
-    .regex(/^(?:\+234|234|0)(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/, { message: 'Please enter a valid Nigerian phone number' }),
+  companyPhone: z.string(),
   companyAddress: z.string().min(5, { message: 'Address must be at least 5 characters' }),
   companyDescription: z.string().min(1, { message: 'Please select a company description / type' }),
+  companyIsNigerian: z.boolean(),
+  companyCountry: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.companyIsNigerian) {
+    const ngRegex = /^(?:\+234|234|0)(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/;
+    if (data.companyPhone.length !== 11) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyPhone'], message: 'Phone number must be exactly 11 digits' });
+    } else if (!ngRegex.test(data.companyPhone)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyPhone'], message: 'Please enter a valid Nigerian phone number' });
+    }
+  } else {
+    if (data.companyPhone.length < 5) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyPhone'], message: 'Please enter a valid phone number' });
+    }
+    if (!data.companyCountry || data.companyCountry.trim().length < 1) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyCountry'], message: 'Please enter your country' });
+    }
+  }
 });
 
 type CompanyFormValues = z.infer<typeof companySchema>;
@@ -23,6 +39,7 @@ export default function CompanySection() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
@@ -32,8 +49,12 @@ export default function CompanySection() {
       companyPhone: currentUser?.data?.company?.phoneNumber ?? '',
       companyAddress: currentUser?.data?.company?.address ?? '',
       companyDescription: currentUser?.data?.company?.description ?? '',
+      companyIsNigerian: !currentUser?.data?.company?.country,
+      companyCountry: currentUser?.data?.company?.country ?? '',
     },
   });
+
+  const isNigerian = watch('companyIsNigerian');
 
   const onSubmit = (data: CompanyFormValues) => {
     updateSettings({
@@ -43,6 +64,7 @@ export default function CompanySection() {
         phoneNumber: data.companyPhone,
         address: data.companyAddress,
         description: data.companyDescription,
+        country: data.companyIsNigerian ? null : (data.companyCountry ?? null),
       },
     });
     alert('Company information updated successfully.');
@@ -92,6 +114,30 @@ export default function CompanySection() {
           />
           {errors.companyPhone && (
             <p className="text-red-500 text-[10px] mt-1">{errors.companyPhone.message}</p>
+          )}
+          <label className="flex items-center gap-2 mt-2 cursor-pointer">
+            <input
+              type="checkbox"
+              {...register('companyIsNigerian')}
+              className="rounded border-neutral-300 text-[#ccd5ae] focus:ring-[#ccd5ae] cursor-pointer"
+            />
+            <span className="text-[10px] text-neutral-500">This is a Nigerian number</span>
+          </label>
+          {!isNigerian && (
+            <div className="mt-2">
+              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+                Country
+              </label>
+              <input
+                type="text"
+                {...register('companyCountry')}
+                placeholder="e.g. Ghana, Kenya, UK"
+                className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
+              />
+              {errors.companyCountry && (
+                <p className="text-red-500 text-[10px] mt-1">{errors.companyCountry.message}</p>
+              )}
+            </div>
           )}
         </div>
         <div>

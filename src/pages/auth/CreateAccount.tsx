@@ -67,6 +67,8 @@ export default function CreateAccount() {
       email: '',
       otp: '',
       phoneNumber: '',
+      isNigerianPhone: true,
+      phoneCountry: '',
       address: '',
       description: '',
       password: '',

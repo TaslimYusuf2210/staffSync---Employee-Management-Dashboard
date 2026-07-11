@@ -12,6 +12,7 @@ export interface CompanyInfo {
   phoneNumber: string;
   address: string;
   description: string;
+  country: string | null;
 }
 
 export interface Settings {

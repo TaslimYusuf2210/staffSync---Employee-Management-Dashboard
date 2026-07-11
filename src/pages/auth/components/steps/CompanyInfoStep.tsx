@@ -2,7 +2,8 @@ import { useFormContext } from 'react-hook-form';
 import type { RegisterFormValues } from '../../schemas/registerSchema';
 
 export function CompanyInfoStep() {
-  const { register, formState: { errors } } = useFormContext<RegisterFormValues>();
+  const { register, watch, formState: { errors } } = useFormContext<RegisterFormValues>();
+  const isNigerianPhone = watch('isNigerianPhone');
   return (
     <div className="space-y-6">
       <div className="relative group">
@@ -55,6 +56,27 @@ export function CompanyInfoStep() {
           Phone Number
         </label>
         {errors.phoneNumber && <p className="text-red-500 text-xs mt-1 font-medium">{errors.phoneNumber.message}</p>}
+        <label className="flex items-center gap-2 mt-3 cursor-pointer">
+          <input
+            type="checkbox"
+            {...register('isNigerianPhone')}
+            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+          />
+          <span className="text-xs text-slate-500">This is a Nigerian number</span>
+        </label>
+        {!isNigerianPhone && (
+          <div className="relative group mt-3">
+            <input type="text" id="phoneCountry" placeholder="e.g. Ghana, Kenya, UK" {...register('phoneCountry')}
+              className={`w-full py-3 px-4 border-b-2 text-slate-800 placeholder-slate-400 focus:outline-none transition-all duration-200 ${
+                errors.phoneCountry ? 'border-red-400 focus:border-red-500' : 'border-slate-200 focus:border-indigo-600'
+              }`}
+            />
+            <label htmlFor="phoneCountry" className="absolute left-4 -top-2.5 text-xs text-slate-500 transition-all duration-200">
+              Country
+            </label>
+            {errors.phoneCountry && <p className="text-red-500 text-xs mt-1 font-medium">{errors.phoneCountry.message}</p>}
+          </div>
+        )}
       </div>
       <div className="relative group">
         <input type="text" id="address" placeholder="e.g. 123 Main Street, City, Country" {...register('address')}
