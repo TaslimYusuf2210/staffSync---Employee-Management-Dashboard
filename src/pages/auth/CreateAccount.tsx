@@ -67,9 +67,10 @@ export default function CreateAccount() {
       email: '',
       otp: '',
       phoneNumber: '',
-      isNigerianPhone: true,
-      phoneCountry: '',
-      address: '',
+      state: '',
+      lga: '',
+      settlement: '',
+      streetAddress: '',
       description: '',
       password: '',
       confirmPassword: '',
@@ -89,7 +90,7 @@ export default function CreateAccount() {
   const handleNext = async () => {
     // On review step, validate ALL fields across every step
     const fields = (step === 4
-      ? ['email', 'otp', 'companyName', 'description', 'phoneNumber', 'address', 'password', 'confirmPassword', 'agreeTerms']
+      ? ['email', 'otp', 'companyName', 'description', 'phoneNumber', 'state', 'lga', 'settlement', 'streetAddress', 'password', 'confirmPassword', 'agreeTerms']
       : STEPS[step].fields) as unknown as Parameters<typeof methods.trigger>[0];
 
     const isValid = await methods.trigger(fields);
@@ -117,7 +118,12 @@ export default function CreateAccount() {
         companyName: data.companyName,
         email: data.email,
         phone: data.phoneNumber,
-        address: data.address,
+        address: {
+          state: data.state,
+          lga: data.lga,
+          settlement: data.settlement,
+          street: data.streetAddress,
+        },
         description: data.description,
         password: data.password,
         agreeTerms: data.agreeTerms,

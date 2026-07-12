@@ -188,19 +188,16 @@ const initialEmployees: Employee[] = [
 ];
 
 const initialSettings: Settings = {
-  admin: {
-    name: 'Admin Strator',
-    email: 'admin@rockscompany.com',
-    profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+  name: 'Rocks Company Ltd',
+  email: 'contact@rockscompany.com',
+  phoneNumber: '+2348129887896',
+  address: {
+    state: 'FCT',
+    lga: 'Municipal',
+    settlement: 'Wuse 2',
+    street: '42 Michael Okpara Street, House 7',
   },
-  company: {
-    name: 'Rocks Company Ltd',
-    email: 'contact@rockscompany.com',
-    phoneNumber: '+1 312 908 1234',
-    address: '123 Avenue block, Chicago, IL',
-    description: 'Corporate Headquarters',
-    country: null,
-  },
+  description: 'Corporate Headquarters',
 };
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {

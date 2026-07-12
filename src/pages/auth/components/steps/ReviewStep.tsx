@@ -16,7 +16,8 @@ export function ReviewStep() {
           <p className="text-slate-800 font-medium">{data.companyName}</p>
           <p className="text-slate-500 text-xs">{data.description}</p>
           <p className="text-slate-500 text-xs mt-1">{data.phoneNumber}</p>
-          <p className="text-slate-500 text-xs">{data.address}</p>
+          <p className="text-slate-500 text-xs">{data.streetAddress}, {data.settlement}</p>
+          <p className="text-slate-500 text-xs">{data.lga} LGA, {data.state}</p>
         </div>
       </div>
       <div className="flex flex-col gap-1 text-sm">

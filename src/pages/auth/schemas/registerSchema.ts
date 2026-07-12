@@ -4,10 +4,12 @@ export const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
   otp: z.string().length(6, { message: 'OTP must be exactly 6 digits' }).regex(/^\d{6}$/, { message: 'OTP must be a 6-digit code' }),
-  phoneNumber: z.string(),
-  isNigerianPhone: z.boolean(),
-  phoneCountry: z.string().optional(),
-  address: z.string().min(1, { message: 'Please enter your address' }),
+  phoneNumber: z.string()
+    .regex(/^\+234(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/, { message: 'Please enter a valid Nigerian phone number' }),
+  state: z.string().min(1, { message: 'Please select your state' }),
+  lga: z.string().min(1, { message: 'Please select your LGA' }),
+  settlement: z.string().min(1, { message: 'Please enter your settlement' }),
+  streetAddress: z.string().min(1, { message: 'Please enter your street address' }),
   description: z.string().min(1, { message: 'Please select a company description / type' }),
   password: z.string()
     .min(8, { message: 'Password must be at least 8 characters long' })
@@ -19,22 +21,6 @@ export const registerSchema = z.object({
   agreeTerms: z.boolean().refine((val) => val === true, {
     message: 'You must agree to the terms and conditions',
   }),
-}).superRefine((data, ctx) => {
-  if (data.isNigerianPhone) {
-    const ngRegex = /^(?:\+234|234|0)(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/;
-    if (data.phoneNumber.length !== 11) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phoneNumber'], message: 'Phone number must be exactly 11 digits' });
-    } else if (!ngRegex.test(data.phoneNumber)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phoneNumber'], message: 'Please enter a valid Nigerian phone number' });
-    }
-  } else {
-    if (data.phoneNumber.length < 5) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phoneNumber'], message: 'Please enter a valid phone number' });
-    }
-    if (!data.phoneCountry || data.phoneCountry.trim().length < 1) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phoneCountry'], message: 'Please enter your country' });
-    }
-  }
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -45,7 +31,7 @@ export type RegisterFormValues = z.infer<typeof registerSchema>;
 export const STEPS = [
   { label: 'Email', fields: ['email'] as const },
   { label: 'OTP', fields: ['otp'] as const },
-  { label: 'Company', fields: ['companyName', 'description', 'phoneNumber', 'isNigerianPhone', 'phoneCountry', 'address'] as const },
+  { label: 'Company', fields: ['companyName', 'description', 'phoneNumber', 'state', 'lga', 'settlement', 'streetAddress'] as const },
   { label: 'Password', fields: ['password', 'confirmPassword'] as const },
   { label: 'Review', fields: ['agreeTerms'] as const },
   { label: 'Success', fields: [] as const },

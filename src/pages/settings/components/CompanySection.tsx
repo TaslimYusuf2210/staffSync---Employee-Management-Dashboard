@@ -1,73 +1,93 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useApp } from '../../../context/AppContext';
 import { useCurrentUser } from '../../../hooks/useCurrentUser';
+import { statesAndLgas } from '@/constants/NigeriaGeo';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {updateSettings} from "../../../services/dashboard/settings";
+import {toast} from "sonner";
+import { Hourglass } from 'ldrs/react'
+import 'ldrs/react/Hourglass.css'
+
+const states: string[] = Object.keys(statesAndLgas).sort();
+
+const phoneRegex = /^\+234(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/;
 
 const companySchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters' }),
   companyEmail: z.string().email({ message: 'Please enter a valid email address' }),
-  companyPhone: z.string(),
-  companyAddress: z.string().min(5, { message: 'Address must be at least 5 characters' }),
+  companyPhone: z.string().regex(phoneRegex, { message: 'Please enter a valid Nigerian phone number' }),
   companyDescription: z.string().min(1, { message: 'Please select a company description / type' }),
-  companyIsNigerian: z.boolean(),
-  companyCountry: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.companyIsNigerian) {
-    const ngRegex = /^(?:\+234|234|0)(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/;
-    if (data.companyPhone.length !== 11) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyPhone'], message: 'Phone number must be exactly 11 digits' });
-    } else if (!ngRegex.test(data.companyPhone)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyPhone'], message: 'Please enter a valid Nigerian phone number' });
-    }
-  } else {
-    if (data.companyPhone.length < 5) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyPhone'], message: 'Please enter a valid phone number' });
-    }
-    if (!data.companyCountry || data.companyCountry.trim().length < 1) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['companyCountry'], message: 'Please enter your country' });
-    }
-  }
+  companyState: z.string().min(1, { message: 'Please select your state' }),
+  companyLga: z.string().min(1, { message: 'Please select your LGA' }),
+  companySettlement: z.string().min(1, { message: 'Please enter your settlement' }),
+  companyStreet: z.string().min(1, { message: 'Please enter your street address' }),
 });
 
 type CompanyFormValues = z.infer<typeof companySchema>;
 
+function formatPhone(phone: string | undefined | null): string {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('234')) return `+234${digits.slice(3)}`;
+  if (digits.startsWith('0')) return `+234${digits.slice(1)}`;
+  return phone.startsWith('+') ? phone : `+234${digits}`;
+}
+
 export default function CompanySection() {
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateSettingsMutation, isPending: isUpdatingSettings } = useMutation({
+    mutationFn: updateSettings,
+    onSuccess: () => {
+      toast.success('Company information updated successfully.');
+      queryClient.invalidateQueries({
+      queryKey: ["currentUser"],
+    });
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'An error occurred. Please try again.');
+    }
+  });
   const { data: currentUser } = useCurrentUser();
-  const { updateSettings } = useApp();
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
     defaultValues: {
       companyName: currentUser?.data?.company?.name ?? '',
       companyEmail: currentUser?.data?.company?.email ?? '',
-      companyPhone: currentUser?.data?.company?.phoneNumber ?? '',
-      companyAddress: currentUser?.data?.company?.address ?? '',
+      companyPhone: formatPhone(currentUser?.data?.company?.phoneNumber),
       companyDescription: currentUser?.data?.company?.description ?? '',
-      companyIsNigerian: !currentUser?.data?.company?.country,
-      companyCountry: currentUser?.data?.company?.country ?? '',
+      companyState: currentUser?.data?.company?.address?.state ?? '',
+      companyLga:  currentUser?.data?.company?.address?.lga ?? '',
+      companySettlement: currentUser?.data?.company?.address?.settlement ?? '',
+      companyStreet: currentUser?.data?.company?.address?.street ?? '',
     },
   });
 
-  const isNigerian = watch('companyIsNigerian');
+  const selectedState = watch('companyState');
+  const lgas: string[] = selectedState ? (statesAndLgas[selectedState] ?? []) : [];
+  const phoneValue = watch('companyPhone');
 
-  const onSubmit = (data: CompanyFormValues) => {
-    updateSettings({
-      company: {
-        name: data.companyName,
-        email: data.companyEmail,
-        phoneNumber: data.companyPhone,
-        address: data.companyAddress,
-        description: data.companyDescription,
-        country: data.companyIsNigerian ? null : (data.companyCountry ?? null),
+  const onSubmit = async (data: CompanyFormValues) => {
+    const payload = {
+      companyName: data.companyName,
+      email: data.companyEmail,
+      phoneNumber: data.companyPhone,
+      description: data.companyDescription,
+      address: {
+        state: data.companyState,
+        lga: data.companyLga,
+        settlement: data.companySettlement,
+        street: data.companyStreet,
       },
-    });
-    alert('Company information updated successfully.');
+    };
+    await updateSettingsMutation(payload);
   };
 
   return (
@@ -107,90 +127,137 @@ export default function CompanySection() {
           <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
             Phone Number
           </label>
-          <input
-            type="text"
-            {...register('companyPhone')}
-            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-          />
+          <div className="flex items-center border border-neutral-200 rounded-xl focus-within:border-[#ccd5ae] transition-colors">
+            <span className="pl-3.5 py-2.5 text-sm text-neutral-500 font-medium select-none">+234</span>
+            <input
+              type="text"
+              placeholder="812 988 7896"
+              className="flex-1 py-2.5 pr-3.5 border-0 focus:outline-none text-sm bg-transparent rounded-r-xl"
+              maxLength={10}
+              value={(phoneValue || '').replace('+234', '')}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                setValue('companyPhone', `+234${digits}`, { shouldValidate: true });
+              }}
+            />
+          </div>
           {errors.companyPhone && (
             <p className="text-red-500 text-[10px] mt-1">{errors.companyPhone.message}</p>
-          )}
-          <label className="flex items-center gap-2 mt-2 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register('companyIsNigerian')}
-              className="rounded border-neutral-300 text-[#ccd5ae] focus:ring-[#ccd5ae] cursor-pointer"
-            />
-            <span className="text-[10px] text-neutral-500">This is a Nigerian number</span>
-          </label>
-          {!isNigerian && (
-            <div className="mt-2">
-              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                Country
-              </label>
-              <input
-                type="text"
-                {...register('companyCountry')}
-                placeholder="e.g. Ghana, Kenya, UK"
-                className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-              />
-              {errors.companyCountry && (
-                <p className="text-red-500 text-[10px] mt-1">{errors.companyCountry.message}</p>
-              )}
-            </div>
           )}
         </div>
         <div>
           <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-            Address
+            Description / Organization Type
           </label>
-          <input
-            type="text"
-            {...register('companyAddress')}
-            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
-          />
-          {errors.companyAddress && (
-            <p className="text-red-500 text-[10px] mt-1">{errors.companyAddress.message}</p>
+          <select
+            {...register('companyDescription')}
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer"
+          >
+            <option value="">Select type</option>
+            <option value="Corporate Headquarters">Corporate Headquarters</option>
+            <option value="Branch Office">Branch Office</option>
+            <option value="Regional Office">Regional Office</option>
+            <option value="Startup">Startup</option>
+            <option value="Small & Medium Enterprise (SME)">Small & Medium Enterprise (SME)</option>
+            <option value="Large Enterprise">Large Enterprise</option>
+            <option value="Multinational Company">Multinational Company</option>
+            <option value="Government Agency">Government Agency</option>
+            <option value="Non-Profit Organization">Non-Profit Organization</option>
+            <option value="Educational Institution">Educational Institution</option>
+            <option value="Healthcare Facility">Healthcare Facility</option>
+            <option value="Remote / Distributed Team">Remote / Distributed Team</option>
+            <option value="Agency / Consulting Firm">Agency / Consulting Firm</option>
+            <option value="Manufacturing Plant">Manufacturing Plant</option>
+            <option value="Retail Chain">Retail Chain</option>
+            <option value="Other">Other</option>
+          </select>
+          {errors.companyDescription && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.companyDescription.message}</p>
           )}
         </div>
       </div>
 
-      <div>
-        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-          Description / Organization Type
-        </label>
-        <select
-          {...register('companyDescription')}
-          className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer"
-        >
-          <option value="Corporate Headquarters">Corporate Headquarters</option>
-          <option value="Branch Office">Branch Office</option>
-          <option value="Regional Office">Regional Office</option>
-          <option value="Startup">Startup</option>
-          <option value="Small & Medium Enterprise (SME)">Small & Medium Enterprise (SME)</option>
-          <option value="Large Enterprise">Large Enterprise</option>
-          <option value="Multinational Company">Multinational Company</option>
-          <option value="Government Agency">Government Agency</option>
-          <option value="Non-Profit Organization">Non-Profit Organization</option>
-          <option value="Educational Institution">Educational Institution</option>
-          <option value="Healthcare Facility">Healthcare Facility</option>
-          <option value="Remote / Distributed Team">Remote / Distributed Team</option>
-          <option value="Agency / Consulting Firm">Agency / Consulting Firm</option>
-          <option value="Manufacturing Plant">Manufacturing Plant</option>
-          <option value="Retail Chain">Retail Chain</option>
-          <option value="Other">Other</option>
-        </select>
-        {errors.companyDescription && (
-          <p className="text-red-500 text-[10px] mt-1">{errors.companyDescription.message}</p>
-        )}
+      {/* ─── Address Section ──────────────────────────────────────── */}
+      <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider pt-2">Address</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            State
+          </label>
+          <select
+            {...register('companyState', { onChange: () => setValue('companyLga', '') })}
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer"
+          >
+            <option value=""></option>
+            {states.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          {errors.companyState && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.companyState.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            LGA
+          </label>
+          <select
+            {...register('companyLga')}
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer"
+          >
+            <option value=""></option>
+            {lgas.map((l: string) => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
+          {errors.companyLga && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.companyLga.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            Settlement / District
+          </label>
+          <input
+            type="text"
+            {...register('companySettlement')}
+            placeholder="Wuse 2"
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
+          />
+          {errors.companySettlement && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.companySettlement.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+            Street Address
+          </label>
+          <input
+            type="text"
+            {...register('companyStreet')}
+            placeholder="42 Michael Okpara Street, House 7"
+            className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-[#ccd5ae]"
+          />
+          {errors.companyStreet && (
+            <p className="text-red-500 text-[10px] mt-1">{errors.companyStreet.message}</p>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end pt-4 border-t border-neutral-100">
         <button
+          disabled={isUpdatingSettings}
           type="submit"
-          className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-sm font-bold rounded-xl transition-all cursor-pointer"
+          className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-sm font-bold rounded-xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          Save Company
+          {isUpdatingSettings ? (
+            <>
+              <Hourglass size={16} /> Updating...
+            </>
+          ) : (
+            'Save Company'
+          )}
         </button>
       </div>
     </form>

@@ -11,7 +11,12 @@ export interface RegisterPayload {
   email: string;
   description: string;
   phone: string;
-  address: string;
+  address: {
+    state: string;
+    lga: string;
+    settlement: string;
+    street: string;
+  };
   password: string;
   agreeTerms: boolean;
 }
@@ -54,9 +59,13 @@ export interface CompanyInfo {
   name: string;
   email: string;
   phoneNumber: string;
-  address: string;
+  address: {
+    state: string;
+    lga: string;
+    settlement: string;
+    street: string;
+  };
   description: string;
-  country: string | null;
 }
 
 export interface CurrentUser {
