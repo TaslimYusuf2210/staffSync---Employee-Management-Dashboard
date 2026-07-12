@@ -3,7 +3,7 @@ import { Card } from './ui/card';
 
 interface StatCardProps {
   label: string;
-  value: string | number;
+  value: string | number | undefined;
   footer?: string;
   footerClassName?: string;
   children?: ReactNode;

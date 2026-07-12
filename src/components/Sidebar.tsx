@@ -115,6 +115,14 @@ export default function Sidebar({ onClose, isDrawer = false }: SidebarProps) {
       ),
     },
   ];
+
+  function handleLogout() {
+    // Clear user data from localStorage or any other storage mechanism
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    // Redirect to login page
+    window.location.href = "/login";
+  }
   return (
     <div
       className={`flex flex-col h-full bg-white border-r border-neutral-200 transition-all duration-300 ease-in-out
@@ -214,7 +222,9 @@ export default function Sidebar({ onClose, isDrawer = false }: SidebarProps) {
               />
             </svg>
           </span>
-          <span className={`${isDrawer ? "inline" : "hidden md:hidden md:group-hover:inline lg:inline"} whitespace-nowrap`}>
+          <span
+          onClick={handleLogout}
+          className={`${isDrawer ? "inline" : "hidden md:hidden md:group-hover:inline lg:inline"} whitespace-nowrap`}>
             Logout
           </span>
         </Link>

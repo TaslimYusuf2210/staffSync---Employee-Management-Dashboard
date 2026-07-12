@@ -30,8 +30,9 @@ export const getCurrentUser = () =>
     method: 'GET',
   });
 
-  export const changePassword = (payload: ChangePasswordPayload) =>
+export const changePassword = (payload: ChangePasswordPayload) =>
   request<{ message: string }>('/auth/change-password', {
     method: 'PUT',
     data: payload,
-  });
+});
+

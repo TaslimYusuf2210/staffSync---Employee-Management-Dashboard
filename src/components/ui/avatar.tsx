@@ -1,7 +1,7 @@
 interface AvatarProps {
   firstName: string;
   lastName: string;
-  photoUrl?: string;
+  photoUrl?: string | null;
   size?: 'sm' | 'md' | 'lg';
 }
 
