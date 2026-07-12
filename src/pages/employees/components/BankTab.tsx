@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { Employee } from '../../../types/dashboard/employee';
 
 interface BankTabProps {
@@ -6,18 +9,33 @@ interface BankTabProps {
   onSave: (bank: { bankName: string; accountName: string; accountNumber: string }) => void;
 }
 
+const bankSchema = z.object({
+  bankName: z.string().min(1, { message: 'Bank name is required' }),
+  accountName: z.string().min(1, { message: 'Account name is required' }),
+  accountNumber: z.string().min(1, { message: 'Account number is required' }),
+});
+
+type BankFormValues = z.infer<typeof bankSchema>;
+
 export function BankTab({ employee, onSave }: BankTabProps) {
   const [editing, setEditing] = useState(false);
   const b = employee.bankAccount;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    onSave({
-      bankName: data.get('bankName') as string,
-      accountName: data.get('accountName') as string,
-      accountNumber: data.get('accountNumber') as string,
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<BankFormValues>({
+    resolver: zodResolver(bankSchema),
+    defaultValues: {
+      bankName: b.bankName,
+      accountName: b.accountName,
+      accountNumber: b.accountNumber,
+    },
+  });
+
+  const onSubmit = (data: BankFormValues) => {
+    onSave(data);
     setEditing(false);
   };
 
@@ -49,7 +67,7 @@ export function BankTab({ employee, onSave }: BankTabProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Configure Bank Details</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {(['bankName', 'accountName', 'accountNumber'] as const).map((field) => (
@@ -57,7 +75,8 @@ export function BankTab({ employee, onSave }: BankTabProps) {
             <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
               {field === 'bankName' ? 'Bank Name' : field === 'accountName' ? 'Account Name' : 'Account Number'}
             </label>
-            <input type="text" name={field} defaultValue={b[field]} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs" />
+            <input type="text" {...register(field)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
+            {errors[field] && <p className="text-red-500 text-[10px] mt-1">{errors[field]?.message}</p>}
           </div>
         ))}
       </div>

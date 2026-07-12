@@ -6,4 +6,5 @@ export interface Department {
   description: string;
   head: string;
   dateCreated: string;
+  employeeCount: number;
 }

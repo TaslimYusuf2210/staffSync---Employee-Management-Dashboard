@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { Employee } from '../../../types/dashboard/employee';
 
 interface PersonalTabProps {
@@ -6,26 +9,53 @@ interface PersonalTabProps {
   onSave: (data: Record<string, string>) => void;
 }
 
+const personalSchema = z.object({
+  firstName: z.string().min(1, { message: 'First name is required' }),
+  lastName: z.string().min(1, { message: 'Last name is required' }),
+  email: z.string().email({ message: 'Please enter a valid email' }),
+  phoneNumber: z.string().min(1, { message: 'Phone number is required' }),
+  gender: z.string().min(1, { message: 'Gender is required' }),
+  dob: z.string().optional(),
+  address: z.string().optional(),
+  emergencyContact: z.string().optional(),
+});
+
+type PersonalFormValues = z.infer<typeof personalSchema>;
+
 export function PersonalTab({ employee, onSave }: PersonalTabProps) {
   const [editing, setEditing] = useState(false);
 
   const fields = [
-    { label: 'First Name', value: employee.firstName, name: 'firstName' },
-    { label: 'Last Name', value: employee.lastName, name: 'lastName' },
-    { label: 'Email Address', value: employee.email, name: 'email', type: 'email' },
-    { label: 'Phone Number', value: employee.phoneNumber, name: 'phoneNumber' },
-    { label: 'Gender', value: employee.gender, name: 'gender', type: 'select', options: ['Male', 'Female', 'Other'] },
-    { label: 'Date of Birth', value: employee.dob || '', name: 'dob', type: 'date' },
-    { label: 'Home Address', value: employee.address || '', name: 'address', colSpan: true },
-    { label: 'Emergency Contact', value: employee.emergencyContact || '', name: 'emergencyContact' },
+    { label: 'First Name', name: 'firstName' as const },
+    { label: 'Last Name', name: 'lastName' as const },
+    { label: 'Email Address', name: 'email' as const, type: 'email' },
+    { label: 'Phone Number', name: 'phoneNumber' as const },
+    { label: 'Gender', name: 'gender' as const, type: 'select' as const, options: ['Male', 'Female', 'Other'] },
+    { label: 'Date of Birth', name: 'dob' as const, type: 'date' },
+    { label: 'Home Address', name: 'address' as const, colSpan: true },
+    { label: 'Emergency Contact', name: 'emergencyContact' as const },
   ];
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const result: Record<string, string> = {};
-    fields.forEach((f) => { result[f.name] = (data.get(f.name) as string) ?? ''; });
-    onSave(result);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PersonalFormValues>({
+    resolver: zodResolver(personalSchema),
+    defaultValues: {
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      email: employee.email,
+      phoneNumber: employee.phoneNumber,
+      gender: employee.gender,
+      dob: employee.dob || '',
+      address: employee.address || '',
+      emergencyContact: employee.emergencyContact || '',
+    },
+  });
+
+  const onSubmit = (data: PersonalFormValues) => {
+    onSave(data);
     setEditing(false);
   };
 
@@ -42,7 +72,7 @@ export function PersonalTab({ employee, onSave }: PersonalTabProps) {
           {fields.map((f) => (
             <div key={f.name} className={f.colSpan ? 'sm:col-span-2' : ''}>
               <span className="text-neutral-400 font-bold block mb-1">{f.label}</span>
-              <p className="font-bold text-neutral-900 text-sm">{f.value || 'Not set'}</p>
+              <p className="font-bold text-neutral-900 text-sm">{employee[f.name] || 'Not set'}</p>
             </div>
           ))}
         </div>
@@ -51,7 +81,7 @@ export function PersonalTab({ employee, onSave }: PersonalTabProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Edit Details</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {fields.map((f) => (
@@ -60,17 +90,17 @@ export function PersonalTab({ employee, onSave }: PersonalTabProps) {
               {f.label}
             </label>
             {f.type === 'select' ? (
-              <select name={f.name} defaultValue={f.value} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs">
+              <select {...register(f.name)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]">
                 {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : (
               <input
                 type={f.type ?? 'text'}
-                name={f.name}
-                defaultValue={f.value}
-                className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs"
+                {...register(f.name)}
+                className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
               />
             )}
+            {errors[f.name] && <p className="text-red-500 text-[10px] mt-1">{errors[f.name]?.message}</p>}
           </div>
         ))}
       </div>

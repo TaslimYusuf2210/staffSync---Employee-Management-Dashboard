@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { Employee, Education } from '../../../types/dashboard/employee';
 
 interface EducationSectionProps {
@@ -7,14 +10,33 @@ interface EducationSectionProps {
   onDelete: (id: string) => void;
 }
 
+const educationSchema = z.object({
+  institutionName: z.string().min(1, { message: 'Institution name is required' }),
+  degree: z.string().min(1, { message: 'Degree is required' }),
+  qualification: z.string().min(1, { message: 'Qualification is required' }),
+  fieldOfStudy: z.string().min(1, { message: 'Field of study is required' }),
+  graduationYear: z.string().min(1, { message: 'Graduation year is required' }),
+});
+
+type EducationFormValues = z.infer<typeof educationSchema>;
+
 export function EducationSection({ education, onAdd, onDelete }: EducationSectionProps) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ institutionName: '', degree: '', qualification: '', fieldOfStudy: '', graduationYear: '' });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<EducationFormValues>({
+    resolver: zodResolver(educationSchema),
+    defaultValues: {
+      institutionName: '', degree: '', qualification: '', fieldOfStudy: '', graduationYear: '',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onAdd({ ...form });
-    setForm({ institutionName: '', degree: '', qualification: '', fieldOfStudy: '', graduationYear: '' });
+  const onSubmit = (data: EducationFormValues) => {
+    onAdd(data);
+    reset();
     setShowForm(false);
   };
 
@@ -28,13 +50,14 @@ export function EducationSection({ education, onAdd, onDelete }: EducationSectio
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-neutral-50 border border-neutral-200 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-neutral-50 border border-neutral-200 p-5 rounded-2xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {(['institutionName', 'degree', 'qualification', 'fieldOfStudy', 'graduationYear'] as const).map((f) => (
             <div key={f}>
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
                 {f === 'institutionName' ? 'Institution Name' : f === 'graduationYear' ? 'Graduation Year' : f.charAt(0).toUpperCase() + f.slice(1).replace(/([A-Z])/g, ' $1')}
               </label>
-              <input required type="text" value={form[f]} onChange={(e) => setForm({ ...form, [f]: e.target.value })} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs" />
+              <input type="text" {...register(f)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
+              {errors[f] && <p className="text-red-500 text-[10px] mt-1">{errors[f]?.message}</p>}
             </div>
           ))}
           <div className="flex items-end">

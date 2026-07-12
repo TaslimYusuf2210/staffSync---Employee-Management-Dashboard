@@ -1,7 +1,19 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 import type { Department } from "../../types/dashboard/department";
+
+const departmentSchema = z.object({
+  name: z.string().min(2, { message: "Department name must be at least 2 characters" }),
+  description: z.string().min(1, { message: "Description is required" }),
+  head: z.string().min(1, { message: "Department head is required" }),
+});
+
+type DepartmentFormValues = z.infer<typeof departmentSchema>;
+
 export default function DepartmentsList() {
   const {
     departments,
@@ -12,42 +24,58 @@ export default function DepartmentsList() {
   } = useApp();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingDep, setEditingDep] = useState<Department | null>(null);
-  const [formName, setFormName] = useState("");
-  const [formDescription, setFormDescription] = useState("");
-  const [formHead, setFormHead] = useState("");
-  const handleAddSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName) return;
-    addDepartment({
-      name: formName,
-      description: formDescription,
-      head: formHead || "Not assigned",
-    });
-    setFormName("");
-    setFormDescription("");
-    setFormHead("");
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<DepartmentFormValues>({
+    resolver: zodResolver(departmentSchema),
+    defaultValues: { name: "", description: "", head: "" },
+  });
+
+  const onSubmit = (data: DepartmentFormValues) => {
+    if (editingDep) {
+      updateDepartment(editingDep.id, {
+        name: data.name,
+        description: data.description,
+        head: data.head || "Not assigned",
+      });
+    } else {
+      addDepartment({
+        name: data.name,
+        description: data.description,
+        head: data.head || "Not assigned",
+        employeeCount: 0,
+      });
+    }
+    reset();
+    setEditingDep(null);
     setShowAddForm(false);
   };
-  const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingDep) return;
-    updateDepartment(editingDep.id, {
-      name: formName,
-      description: formDescription,
-      head: formHead || "Not assigned",
-    });
+
+  const startAdd = () => {
     setEditingDep(null);
-    setFormName("");
-    setFormDescription("");
-    setFormHead("");
+    reset({ name: "", description: "", head: "" });
+    setShowAddForm(true);
   };
+
   const startEdit = (dep: Department) => {
     setEditingDep(dep);
-    setFormName(dep.name);
-    setFormDescription(dep.description);
-    setFormHead(dep.head);
+    setValue("name", dep.name);
+    setValue("description", dep.description);
+    setValue("head", dep.head);
     setShowAddForm(false);
   };
+
+  const cancelForm = () => {
+    reset();
+    setEditingDep(null);
+    setShowAddForm(false);
+  };
+
   const handleDelete = (id: string, name: string) => {
     if (
       window.confirm(`Are you sure you want to delete the ${name} department?`)
@@ -72,7 +100,7 @@ export default function DepartmentsList() {
         </div>{" "}
         {!showAddForm && !editingDep && (
           <button
-            onClick={() => setShowAddForm(true)}
+            onClick={startAdd}
             className="px-4 py-2.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 font-bold rounded-xl text-sm transition-all shadow-sm shrink-0 flex items-center justify-center gap-2 cursor-pointer"
           >
             {" "}
@@ -97,71 +125,56 @@ export default function DepartmentsList() {
       {/* CREATE OR EDIT FORM CONTAINER */}{" "}
       {(showAddForm || editingDep) && (
         <form
-          onSubmit={showAddForm ? handleAddSubmit : handleEditSubmit}
-          className="bg-white -[#e9edc9] border border-neutral-200 -[#ccd5ae] p-6 rounded-2xl shadow-sm space-y-4"
+          onSubmit={handleSubmit(onSubmit)}
+          className="bg-white border border-neutral-200 p-6 rounded-2xl shadow-sm space-y-4"
         >
-          {" "}
-          <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider pb-2 border-b border-neutral-100 -[#ccd5ae]">
-            {" "}
+          <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider pb-2 border-b border-neutral-100">
             {showAddForm
               ? "Create Department"
-              : `Edit Department: ${editingDep?.name}`}{" "}
-          </h3>{" "}
+              : `Edit Department: ${editingDep?.name}`}
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {" "}
             <div>
-              {" "}
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
                 Department Name
-              </label>{" "}
+              </label>
               <input
-                required
                 type="text"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                className="w-full py-2 px-3 border border-neutral-250 -[#ccd5ae] -[#ccd5ae] rounded-xl text-xs"
-              />{" "}
-            </div>{" "}
+                {...register("name")}
+                className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+              />
+              {errors.name && <p className="text-red-500 text-[10px] mt-1">{errors.name.message}</p>}
+            </div>
             <div>
-              {" "}
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
                 Department Head / Manager
-              </label>{" "}
+              </label>
               <input
                 type="text"
-                value={formHead}
-                onChange={(e) => setFormHead(e.target.value)}
-                className="w-full py-2 px-3 border border-neutral-250 -[#ccd5ae] -[#ccd5ae] rounded-xl text-xs font-semibold"
-              />{" "}
-            </div>{" "}
+                {...register("head")}
+                className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+              />
+              {errors.head && <p className="text-red-500 text-[10px] mt-1">{errors.head.message}</p>}
+            </div>
             <div className="sm:col-span-2 md:col-span-1">
-              {" "}
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
                 Description
-              </label>{" "}
+              </label>
               <input
                 type="text"
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                className="w-full py-2 px-3 border border-neutral-250 -[#ccd5ae] -[#ccd5ae] rounded-xl text-xs"
-              />{" "}
-            </div>{" "}
-          </div>{" "}
+                {...register("description")}
+                className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+              />
+              {errors.description && <p className="text-red-500 text-[10px] mt-1">{errors.description.message}</p>}
+            </div>
+          </div>
           <div className="flex gap-2 justify-end pt-2">
-            {" "}
             <button
               type="button"
-              onClick={() => {
-                setShowAddForm(false);
-                setEditingDep(null);
-                setFormName("");
-                setFormDescription("");
-                setFormHead("");
-              }}
-              className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 -[#faedcd] text-xs font-bold rounded-xl"
+              onClick={cancelForm}
+              className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer"
             >
-              {" "}
-              Cancel{" "}
+              Cancel
             </button>{" "}
             <button
               type="submit"

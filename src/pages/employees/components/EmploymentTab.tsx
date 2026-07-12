@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { Employee } from '../../../types/dashboard/employee';
 import type { Department } from '../../../types/dashboard/department';
 
@@ -8,25 +11,51 @@ interface EmploymentTabProps {
   onSave: (data: Record<string, string>) => void;
 }
 
+const employmentSchema = z.object({
+  department: z.string().min(1, { message: 'Department is required' }),
+  position: z.string().min(1, { message: 'Position is required' }),
+  employmentType: z.string().min(1, { message: 'Employment type is required' }),
+  hireDate: z.string().min(1, { message: 'Hire date is required' }),
+  reportingManager: z.string().optional(),
+  status: z.string().min(1, { message: 'Status is required' }),
+});
+
+type EmploymentFormValues = z.infer<typeof employmentSchema>;
+
 export function EmploymentTab({ employee, departments, onSave }: EmploymentTabProps) {
   const [editing, setEditing] = useState(false);
 
   const fields = [
     { label: 'Employee ID', value: employee.id, name: 'id', readOnly: true },
-    { label: 'Department', value: employee.department, name: 'department', type: 'select', options: departments.map((d) => d.name) },
-    { label: 'Position', value: employee.position, name: 'position' },
-    { label: 'Employment Type', value: employee.employmentType, name: 'employmentType', type: 'select', options: ['Full-time', 'Part-time', 'Contract', 'Intern', 'Remote'] },
-    { label: 'Hire Date', value: employee.hireDate, name: 'hireDate', type: 'date' },
-    { label: 'Reporting Manager', value: employee.reportingManager, name: 'reportingManager' },
-    { label: 'Employment Status', value: employee.status, name: 'status', type: 'select', options: ['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated'] },
+    { label: 'Department', name: 'department' as const, type: 'select' as const, options: departments.map((d) => d.name) },
+    { label: 'Position', name: 'position' as const },
+    { label: 'Employment Type', name: 'employmentType' as const, type: 'select' as const, options: ['Full-time', 'Part-time', 'Contract', 'Intern', 'Remote'] },
+    { label: 'Hire Date', name: 'hireDate' as const, type: 'date' },
+    { label: 'Reporting Manager', name: 'reportingManager' as const },
+    { label: 'Employment Status', name: 'status' as const, type: 'select' as const, options: ['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated'] },
   ];
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const result: Record<string, string> = {};
-    fields.forEach((f) => { if (!f.readOnly) result[f.name] = (data.get(f.name) as string) ?? ''; });
-    onSave(result);
+  const editableFields = fields.filter((f) => !f.readOnly);
+  const fieldNames = editableFields.map((f) => f.name) as [string, ...string[]];
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EmploymentFormValues>({
+    resolver: zodResolver(employmentSchema),
+    defaultValues: {
+      department: employee.department,
+      position: employee.position,
+      employmentType: employee.employmentType,
+      hireDate: employee.hireDate,
+      reportingManager: employee.reportingManager || '',
+      status: employee.status,
+    },
+  });
+
+  const onSubmit = (data: EmploymentFormValues) => {
+    onSave(data);
     setEditing(false);
   };
 
@@ -43,7 +72,7 @@ export function EmploymentTab({ employee, departments, onSave }: EmploymentTabPr
           {fields.map((f) => (
             <div key={f.name}>
               <span className="text-neutral-400 font-bold block mb-1">{f.label}</span>
-              <p className="font-bold text-neutral-900 text-sm">{f.value || 'Not set'}</p>
+              <p className="font-bold text-neutral-900 text-sm">{'value' in f ? f.value : (employee[f.name as keyof Employee] as string) || 'Not set'}</p>
             </div>
           ))}
         </div>
@@ -52,22 +81,21 @@ export function EmploymentTab({ employee, departments, onSave }: EmploymentTabPr
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Edit Details</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {fields.map((f) => (
-          !f.readOnly && (
-            <div key={f.name}>
-              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">{f.label}</label>
-              {f.type === 'select' ? (
-                <select name={f.name} defaultValue={f.value} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs">
-                  {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              ) : (
-                <input type={f.type ?? 'text'} name={f.name} defaultValue={f.value} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs" />
-              )}
-            </div>
-          )
+        {editableFields.map((f) => (
+          <div key={f.name}>
+            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">{f.label}</label>
+            {f.type === 'select' ? (
+              <select {...register(f.name)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]">
+                {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ) : (
+              <input type={f.type ?? 'text'} {...register(f.name)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
+            )}
+            {errors[f.name] && <p className="text-red-500 text-[10px] mt-1">{errors[f.name]?.message}</p>}
+          </div>
         ))}
       </div>
       <div className="flex gap-2 justify-end">

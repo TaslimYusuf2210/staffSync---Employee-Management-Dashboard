@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { Employee } from '../../../types/dashboard/employee';
 
 interface SalaryTabProps {
@@ -6,19 +9,38 @@ interface SalaryTabProps {
   onSave: (salary: { baseSalary: number; bonus: number; allowances: number }) => void;
 }
 
+const salarySchema = z.object({
+  baseSalary: z.coerce.number().min(0, { message: 'Must be a valid number' }),
+  bonus: z.coerce.number().min(0, { message: 'Must be a valid number' }),
+  allowances: z.coerce.number().min(0, { message: 'Must be a valid number' }),
+});
+
+type SalaryFormValues = z.infer<typeof salarySchema>;
+
 export function SalaryTab({ employee, onSave }: SalaryTabProps) {
   const [editing, setEditing] = useState(false);
   const s = employee.salary;
   const total = s.baseSalary + s.bonus + s.allowances;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    onSave({
-      baseSalary: Number(data.get('baseSalary')),
-      bonus: Number(data.get('bonus')),
-      allowances: Number(data.get('allowances')),
-    });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<SalaryFormValues>({
+    resolver: zodResolver(salarySchema),
+    defaultValues: {
+      baseSalary: s.baseSalary,
+      bonus: s.bonus,
+      allowances: s.allowances,
+    },
+  });
+
+  const watchedValues = watch();
+  const formTotal = (watchedValues.baseSalary ?? 0) + (watchedValues.bonus ?? 0) + (watchedValues.allowances ?? 0);
+
+  const onSubmit = (data: SalaryFormValues) => {
+    onSave(data);
     setEditing(false);
   };
 
@@ -54,7 +76,7 @@ export function SalaryTab({ employee, onSave }: SalaryTabProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Adjust Compensation</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {(['baseSalary', 'bonus', 'allowances'] as const).map((field) => (
@@ -62,9 +84,14 @@ export function SalaryTab({ employee, onSave }: SalaryTabProps) {
             <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
               {field === 'baseSalary' ? 'Base Salary ($)' : field === 'bonus' ? 'Bonus ($)' : 'Allowances ($)'}
             </label>
-            <input type="number" name={field} defaultValue={s[field]} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs" />
+            <input type="number" {...register(field)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
+            {errors[field] && <p className="text-red-500 text-[10px] mt-1">{errors[field]?.message}</p>}
           </div>
         ))}
+      </div>
+      <div className="bg-neutral-50 border border-neutral-100 p-3 rounded-xl mb-4">
+        <span className="text-neutral-400 font-bold block text-xs">Total Compensation</span>
+        <p className="font-black text-neutral-950 text-lg mt-1">${formTotal.toLocaleString()}</p>
       </div>
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={() => setEditing(false)} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
