@@ -60,6 +60,7 @@ Learned how to manage server-side mutations with TanStack Query in a multi-step 
 Learned how to set up and use the `@` import alias to avoid messy relative paths.
 
 - **Configured in two places** — Vite (for the bundler) and `tsconfig.json` (for TypeScript):
+
   ```ts
   // vite.config.ts
   resolve: { alias: { '@': path.resolve(__dirname, './src') } }
@@ -67,6 +68,7 @@ Learned how to set up and use the `@` import alias to avoid messy relative paths
   // tsconfig.app.json
   { "baseUrl": ".", "paths": { "@/*": ["./src/*"] } }
   ```
+
 - **How it works**: `@/components/Button` → Vite resolves to `./src/components/Button` — no more `../../../../components/Button`.
 - **Why it's useful**: Relative paths break when you move files. `@/` paths are always relative to `src/`, so they work from any file at any depth. Saves time counting `../` dots and prevents silent import failures.
 - **Not Next.js specific** — any Vite project can use it. The alias is just a bundler-level path replacement.

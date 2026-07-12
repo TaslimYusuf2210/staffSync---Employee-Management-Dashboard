@@ -8,3 +8,7 @@ export interface Department {
   dateCreated: string;
   employeeCount: number;
 }
+
+export interface DepartmentsResponse {
+  departments: Department[];
+}

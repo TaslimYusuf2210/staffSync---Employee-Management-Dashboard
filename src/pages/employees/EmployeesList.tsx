@@ -120,6 +120,7 @@ export default function EmployeesList() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">S/N</TableHead>
                 <TableHead>Employee ID</TableHead>
                 <TableHead className="cursor-pointer hover:text-neutral-900 select-none" onClick={() => toggleSort('name')}>Full Name{sortIndicator('name')}</TableHead>
                 <TableHead className="cursor-pointer hover:text-neutral-900 select-none" onClick={() => toggleSort('dept')}>Department{sortIndicator('dept')}</TableHead>
@@ -130,8 +131,9 @@ export default function EmployeesList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedEmployees.map((emp) => (
+              {paginatedEmployees.map((emp, index) => (
                 <TableRow key={emp.id}>
+                  <TableCell className="text-neutral-500 font-bold">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                   <TableCell className="font-bold text-neutral-950">{emp.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">

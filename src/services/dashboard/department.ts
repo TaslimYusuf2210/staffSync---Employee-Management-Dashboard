@@ -1,7 +1,7 @@
 import { request } from '../api';
-import type { Department } from '../../types/dashboard/department';
+import type { DepartmentsResponse } from '../../types/dashboard/department';
 
 export const getDepartments = () =>
-  request<Department[]>('/departments', {
+  request<DepartmentsResponse>('/departments', {
     method: 'GET',
   });
