@@ -19,8 +19,11 @@ export interface RecentEmployee {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
   department: string;
   position: string;
+  employmentType: string;
+  status: string;
   hireDate: string;
   photoUrl: string | null;
 }

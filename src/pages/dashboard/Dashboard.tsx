@@ -5,15 +5,17 @@ import { StatCard } from '../../components/StatCard';
 import { Avatar } from '../../components/ui/avatar';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
+import type { RecentEmployee } from '../../types/dashboard/dashboard';
 
 export default function Dashboard() {
   const { employees, departments } = useApp();
 
   const { data: dashboardStats, isError } = useDashboardStats();
 
-  const totalEmployees = dashboardStats?.data?.totalEmployees || 0;
-  const activeEmployees = dashboardStats?.data?.activeEmployees || 0;
-  const recentEmployees = dashboardStats?.data?.recentEmployees || [];
+  console.log("dashboardstats:", dashboardStats);
+  const totalEmployees = dashboardStats?.data?.totalEmployees ?? 0;
+  const activeEmployees = dashboardStats?.data?.activeEmployees ?? 0;
+  const recentEmployees = dashboardStats?.data?.recentEmployees ?? [];
 
   return (
     <div className="space-y-6">
@@ -42,7 +44,7 @@ export default function Dashboard() {
               <div className="h-44 flex items-end justify-between gap-4 mt-6">
                 {departments.map((dep) => {
                   const count = employees.filter((e) => e.department === dep.name).length;
-                  const percentage = totalEmployees > 0 ? (count / totalEmployees) * 100 : 0;
+                  const percentage = 1 > 0 ? (count / 0) * 100 : 0;
                   return (
                     <div key={dep.id} className="flex-1 flex flex-col items-center gap-2">
                       <div className="w-full bg-neutral-100 rounded-t-md h-32 flex items-end">
@@ -80,7 +82,7 @@ export default function Dashboard() {
                     fill="transparent"
                     stroke="#0a0a0a"
                     strokeWidth="16"
-                    strokeDasharray={`${(activeEmployees / (totalEmployees || 1)) * 314} 314`}
+                    strokeDasharray={`${(4 / 2) * 314} 314`}
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
@@ -151,7 +153,7 @@ export default function Dashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentEmployees.map((emp) => (
+              {recentEmployees.map((emp: RecentEmployee) => (
                 <TableRow key={emp.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
