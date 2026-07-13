@@ -151,6 +151,22 @@ Learned how `placeholderData` provides fallback data while a query is loading.
 
 ---
 
+## 2026-07-13
+
+### Extracted all `useMutation` calls into dedicated hooks
+Every mutation (login, sendOtp, verifyOtp, register, updateSettings, changePassword, createDepartment) now lives in its own hook under `src/hooks/useMutation/`. Hooks handle common logic (toasts, query invalidation) and expose `onSuccess` callbacks for component-specific behavior.
+
+### Built a search-as-you-type employee dropdown
+Used `useGetEmployees({ search, limit: 10 })` with a debounce-less text input to power a live dropdown in the department creation dialog. Learned that `{...register()}` spreads contain an `onChange` — custom handlers must go inside `register('field', { onChange: ... })`.
+
+### Separated add/edit dialogs from inline forms
+Created a reusable `Dialog` component and split a shared add/edit department form into two independent dialog components with their own state and form instances, replacing an inline form that caused layout shifts.
+
+### Added query invalidation on mutation success
+Used `queryClient.invalidateQueries({ queryKey: ['departments'] })` inside `useCreateDepartment` so the department list auto-refreshes after a new department is created — no manual refetch needed.
+
+---
+
 ### `{...register()}` Spread Overwrites Manual `onChange`
 
 Learned that `{...register('fieldName')}` already contains an `onChange` handler that react-hook-form needs to track the input value. If you add a separate `onChange` prop after the spread, it **overwrites** RHF's onChange — the form field stops updating.
