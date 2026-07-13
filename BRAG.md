@@ -96,3 +96,55 @@ Learned how `z.infer<typeof schema>` automatically derives TypeScript types from
 - **Practical benefit**: Single source of truth — change the Zod schema and both runtime validation _and_ TypeScript types update together. No more mismatched interfaces.
 
 ---
+
+## 2026-07-13
+
+### Query Parameters in GET Requests
+
+Learned the role of `params` in GET requests and how they map to URL query strings.
+
+- **Query parameters** are key-value pairs appended to the URL after `?` (e.g. `GET /employees?search=Brook&department=Design&page=1&limit=10`).
+- They are used to **filter, paginate, sort, and search** data without creating separate endpoints for each combination.
+- The Axios `params` option automatically serializes an object into a query string — no manual string concatenation needed.
+- **Example with typed params:**
+  ```ts
+  interface EmployeeQueryParams {
+    search?: string;
+    department?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: 'name' | 'dept' | 'joined';
+    sortOrder?: 'asc' | 'desc';
+  }
+
+  getEmployees({ search: 'Brook', department: 'Design' })
+  // → GET /employees?search=Brook&department=Design
+  ```
+- All params are **optional** — the endpoint works with zero params (returns defaults) or any combination.
+- The `request` helper accepts `params` in its options and passes them directly to Axios.
+
+### `placeholderData` in TanStack Query
+
+Learned how `placeholderData` provides fallback data while a query is loading.
+
+- **`placeholderData`** is shown immediately — it's not cached, not persisted, just a temporary stand-in while the real fetch happens.
+- Unlike `initialData` (which is treated as cached/real data), `placeholderData` is replaced the moment the actual response arrives.
+- **Common use case — keeping previous data while fetching next page:**
+  ```ts
+  useQuery({
+    queryKey: ['employees', { page: 2 }],
+    queryFn: () => getEmployees({ page: 2 }),
+    placeholderData: (previousData) => previousData,
+  });
+  ```
+  This keeps the page 1 results visible while page 2 loads, avoiding a flash of empty content.
+- **Also useful for providing a default shape when data might be undefined:**
+  ```ts
+  useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: getDashboardData,
+    placeholderData: { totalEmployees: 0, activeEmployees: 0, ... },
+  });
+  ```
+
+---
