@@ -16,5 +16,5 @@ export interface DepartmentsResponse {
 export interface CreateDepartmentPayload {
   name: string;
   description: string;
-  head: string;
+  head?: string;
 }

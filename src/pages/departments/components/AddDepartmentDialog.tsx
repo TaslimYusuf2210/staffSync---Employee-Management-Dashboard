@@ -5,11 +5,14 @@ import { useApp } from '../../../context/AppContext';
 import { useState } from 'react';
 import { Dialog } from '../../../components/ui/dialog';
 import { useGetEmployees } from '../../../hooks/useQuery/useGetEmployees';
+import { useCreateDepartment } from '@/hooks/useMutation/useCreateDepartment';
+import { Hourglass } from 'ldrs/react'
+import 'ldrs/react/Hourglass.css'
 
 const addSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
   description: z.string().min(1, { message: 'Description is required' }),
-  head: z.string().min(1, { message: 'Department head is required' }),
+  head: z.string().optional(),
 });
 
 type AddFormValues = z.infer<typeof addSchema>;
@@ -20,12 +23,17 @@ interface AddDepartmentDialogProps {
 }
 
 export function AddDepartmentDialog({ open, onClose }: AddDepartmentDialogProps) {
-  const { addDepartment } = useApp();
   const [headSearch, setHeadSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const { data: employeesData, isLoading: isSearching } = useGetEmployees(
     headSearch.length > 0 ? { search: headSearch, limit: 10 } : undefined
   );
+  const { mutate: addDepartmentMutation, isPending: isAddingDepartment } = useCreateDepartment({
+    onSuccess: () => {
+      reset();
+      onClose();
+    },
+  });
   const employeeList = employeesData?.data?.employees ?? [];
 
   const {
@@ -46,9 +54,11 @@ export function AddDepartmentDialog({ open, onClose }: AddDepartmentDialogProps)
   };
 
   const onSubmit = (data: AddFormValues) => {
-    addDepartment({ name: data.name, description: data.description, head: data.head || 'Not assigned', employeeCount: 0 });
-    reset();
-    onClose();
+    addDepartmentMutation({
+      name: data.name,
+      description: data.description,
+      head: data.head,
+    });
   };
 
   const handleClose = () => {
@@ -117,7 +127,17 @@ export function AddDepartmentDialog({ open, onClose }: AddDepartmentDialogProps)
         </div>
         <div className="flex gap-2 justify-end pt-2">
           <button type="button" onClick={handleClose} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
-          <button type="submit" className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">Create Department</button>
+          <button
+            type="submit"
+            disabled={isAddingDepartment}
+            className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isAddingDepartment ? (
+              <><Hourglass size={14} /> Creating...</>
+            ) : (
+              'Create Department'
+            )}
+          </button>
         </div>
       </form>
     </Dialog>
