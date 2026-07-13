@@ -107,19 +107,21 @@ Learned the role of `params` in GET requests and how they map to URL query strin
 - They are used to **filter, paginate, sort, and search** data without creating separate endpoints for each combination.
 - The Axios `params` option automatically serializes an object into a query string — no manual string concatenation needed.
 - **Example with typed params:**
+
   ```ts
   interface EmployeeQueryParams {
     search?: string;
     department?: string;
     page?: number;
     limit?: number;
-    sortBy?: 'name' | 'dept' | 'joined';
-    sortOrder?: 'asc' | 'desc';
+    sortBy?: "name" | "dept" | "joined";
+    sortOrder?: "asc" | "desc";
   }
 
-  getEmployees({ search: 'Brook', department: 'Design' })
+  getEmployees({ search: "Brook", department: "Design" });
   // → GET /employees?search=Brook&department=Design
   ```
+
 - All params are **optional** — the endpoint works with zero params (returns defaults) or any combination.
 - The `request` helper accepts `params` in its options and passes them directly to Axios.
 
@@ -132,7 +134,7 @@ Learned how `placeholderData` provides fallback data while a query is loading.
 - **Common use case — keeping previous data while fetching next page:**
   ```ts
   useQuery({
-    queryKey: ['employees', { page: 2 }],
+    queryKey: ["employees", { page: 2 }],
     queryFn: () => getEmployees({ page: 2 }),
     placeholderData: (previousData) => previousData,
   });
@@ -146,5 +148,21 @@ Learned how `placeholderData` provides fallback data while a query is loading.
     placeholderData: { totalEmployees: 0, activeEmployees: 0, ... },
   });
   ```
+
+---
+
+### `{...register()}` Spread Overwrites Manual `onChange`
+
+Learned that `{...register('fieldName')}` already contains an `onChange` handler that react-hook-form needs to track the input value. If you add a separate `onChange` prop after the spread, it **overwrites** RHF's onChange — the form field stops updating.
+
+```tsx
+// ❌ RHF's onChange is overwritten — form field won't update
+<input {...register('head')} onChange={(e) => setHeadSearch(e.target.value)} />
+
+// ✅ Pass custom onChange inside register's options — both run
+<input {...register('head', { onChange: (e) => setHeadSearch(e.target.value) })} />
+```
+
+The spread (`{...register('head')}`) expands to `{ onChange, onBlur, ref, name }`. Any prop placed **after** the spread with the same name replaces the spread's version. Moving the custom logic into `register()`'s second argument lets RHF wrap its own handler around yours so both execute.
 
 ---
