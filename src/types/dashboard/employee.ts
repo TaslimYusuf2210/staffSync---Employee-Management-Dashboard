@@ -110,3 +110,25 @@ export type TabType =
   | 'bank'
   | 'documents'
   | 'notes';
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface EmployeesResponse {
+  employees: Employee[];
+  pagination: Pagination;
+}
+
+export interface EmployeeQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  department?: string;
+  status?: 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated';
+  sortBy?: 'name' | 'dept' | 'joined';
+  sortOrder?: 'asc' | 'desc';
+}
