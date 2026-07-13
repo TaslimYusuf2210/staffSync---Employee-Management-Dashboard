@@ -4,13 +4,13 @@ import { PageHeader } from '../../components/PageHeader';
 import { StatCard } from '../../components/StatCard';
 import { Avatar } from '../../components/ui/avatar';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
-import { useDashboardStats } from '../../hooks/useDashboardStats';
+import { useGetDashboardStats } from '../../hooks/useQuery/useGetDashboardStats';
 import type { RecentEmployee } from '../../types/dashboard/dashboard';
 
 export default function Dashboard() {
   const { employees, departments } = useApp();
 
-  const { data: dashboardStats, isError } = useDashboardStats();
+  const { data: dashboardStats, isError } = useGetDashboardStats();
 
   console.log("dashboardstats:", dashboardStats);
   const totalEmployees = dashboardStats?.data?.totalEmployees ?? 0;

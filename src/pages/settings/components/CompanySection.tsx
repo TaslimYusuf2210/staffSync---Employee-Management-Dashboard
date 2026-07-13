@@ -1,13 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useCurrentUser } from '../../../hooks/useCurrentUser';
+import { useGetCurrentUser } from '../../../hooks/useQuery/useGetCurrentUser';
 import { statesAndLgas } from '@/constants/NigeriaGeo';
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {updateSettings} from "../../../services/dashboard/settings";
-import {toast} from "sonner";
 import { Hourglass } from 'ldrs/react'
 import 'ldrs/react/Hourglass.css'
+import { useUpdateSettings } from '../../../hooks/useMutation/useUpdateSettings';
 
 const states: string[] = Object.keys(statesAndLgas).sort();
 
@@ -35,20 +33,8 @@ function formatPhone(phone: string | undefined | null): string {
 }
 
 export default function CompanySection() {
-  const queryClient = useQueryClient();
-  const { mutateAsync: updateSettingsMutation, isPending: isUpdatingSettings } = useMutation({
-    mutationFn: updateSettings,
-    onSuccess: () => {
-      toast.success('Company information updated successfully.');
-      queryClient.invalidateQueries({
-      queryKey: ["currentUser"],
-    });
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'An error occurred. Please try again.');
-    }
-  });
-  const { data: currentUser } = useCurrentUser();
+  const { mutateAsync: updateSettingsMutation, isPending: isUpdatingSettings } = useUpdateSettings();
+  const { data: currentUser } = useGetCurrentUser();
 
   const {
     register,

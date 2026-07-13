@@ -12,3 +12,9 @@ export interface Department {
 export interface DepartmentsResponse {
   departments: Department[];
 }
+
+export interface CreateDepartmentPayload {
+  name: string;
+  description: string;
+  head: string;
+}

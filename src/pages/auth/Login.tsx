@@ -4,11 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import workTimeSvg from '../../assets/work_time.svg';
-import { login } from '../../services/auth';
-import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { Hourglass } from 'ldrs/react'
 import 'ldrs/react/Hourglass.css'
+import { useLogin } from '../../hooks/useMutation/useLogin';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -21,22 +19,9 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const { mutateAsync: loginUser, isPending: isLoggingIn } = useMutation({
-    mutationFn: login,
-    onSuccess: (data, variables) => {
-      toast.success('Login successful! Redirecting to dashboard...');
-      if (data?.data?.token) {
-        if (variables.rememberMe) {
-          localStorage.setItem('token', data.data.token);
-        } else {
-          sessionStorage.setItem('token', data.data.token);
-        }
-      }
+  const { mutateAsync: loginUser, isPending: isLoggingIn } = useLogin({
+    onSuccess: () => {
       navigate('/dashboard', { replace: true });
-      console.log('Login response:', data);
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'An error occurred. Please try again.');
     },
   });
 

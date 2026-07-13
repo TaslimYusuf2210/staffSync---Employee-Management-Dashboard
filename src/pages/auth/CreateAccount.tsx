@@ -3,11 +3,11 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
 import hrRepSvg from '../../assets/hr_rep.svg';
-import { useMutation } from '@tanstack/react-query';
-import { registerAccount, sendOtp, verifyOtp } from '../../services/auth';
-import { toast } from 'sonner';
 import { Hourglass } from 'ldrs/react'
 import 'ldrs/react/Hourglass.css'
+import { useSendOtp } from '../../hooks/useMutation/useSendOtp';
+import { useVerifyOtp } from '../../hooks/useMutation/useVerifyOtp';
+import { useRegisterAccount } from '../../hooks/useMutation/useRegisterAccount';
 
 import { registerSchema, type RegisterFormValues, STEPS, stepMessages } from './schemas/registerSchema';
 import { Stepper } from './components/Stepper';
@@ -24,39 +24,24 @@ export default function CreateAccount() {
   const [step, setStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
-  const { mutateAsync: handleSendOtp, isPending: isSendingOtp } = useMutation({
-    mutationFn: sendOtp,
+  const { mutateAsync: handleSendOtp, isPending: isSendingOtp } = useSendOtp({
     onSuccess: () => {
-      toast.success('OTP sent successfully! Please check your email.');
       setStep(1);
       setCompletedSteps((prev) => new Set(prev).add(0));
     },
-    onError: (error: any) => {
-      toast.error(error?.message || 'An error occurred. Please try again.');
-    },
   });
 
-  const { mutateAsync: handleVerifyOtp, isPending: isVerifyingOtp } = useMutation({
-    mutationFn: verifyOtp,
+  const { mutateAsync: handleVerifyOtp, isPending: isVerifyingOtp } = useVerifyOtp({
     onSuccess: () => {
-      toast.success('OTP verified successfully!');
       setStep(2);
       setCompletedSteps((prev) => new Set(prev).add(1));
     },
-    onError: (error: any) => {
-      toast.error(error?.message || 'An error occurred. Please try again.');
-    },
   });
 
-  const { mutateAsync: registerUser, isPending } = useMutation({
-    mutationFn: registerAccount,
+  const { mutateAsync: registerUser, isPending } = useRegisterAccount({
     onSuccess: () => {
-      toast.success('Account created successfully! Please check your email for verification.');
       setStep(5);
       setCompletedSteps((prev) => new Set(prev).add(4));
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'An error occurred. Please try again.');
     },
   });
 

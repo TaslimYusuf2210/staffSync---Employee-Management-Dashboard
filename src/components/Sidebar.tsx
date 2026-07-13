@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { useCurrentUser } from "../hooks/useCurrentUser";
+import { useGetCurrentUser } from "../hooks/useQuery/useGetCurrentUser";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -8,7 +8,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onClose, isDrawer = false }: SidebarProps) {
-  const { data: currentUser } = useCurrentUser();
+  const { data: currentUser } = useGetCurrentUser();
   console.log('Current user data in Sidebar:', currentUser);
   const location = useLocation();
   const { settings } = useApp();

@@ -1,12 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { changePassword } from '../../../services/auth';
-import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { Hourglass } from 'ldrs/react'
 import 'ldrs/react/Hourglass.css'
 import { PasswordStrength } from '../../auth/components/PasswordStrength';
+import { useChangePassword } from '../../../hooks/useMutation/useChangePassword';
 
 const securitySchema = z
   .object({
@@ -27,15 +25,8 @@ const securitySchema = z
 type SecurityFormValues = z.infer<typeof securitySchema>;
 
 export default function SecuritySection() {
-    const { mutateAsync: changePasswordMutation, isPending: isChangingPassword } = useMutation({
-        mutationFn: changePassword,
-        onSuccess: () => {
-            toast.success('Password changed successfully!');
-            reset();
-        },
-        onError: (error: any) => {
-            toast.error(error?.message || 'An error occurred. Please try again.');
-        },
+    const { mutateAsync: changePasswordMutation, isPending: isChangingPassword } = useChangePassword({
+      onSuccess: () => reset(),
     });
   const {
     register,

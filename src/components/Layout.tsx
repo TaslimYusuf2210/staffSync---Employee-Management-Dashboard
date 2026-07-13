@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import {useCurrentUser} from "../hooks/useCurrentUser";
+import {useGetCurrentUser} from "../hooks/useQuery/useGetCurrentUser";
 
 export default function Layout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const { isLoading: isFetchingUser } = useCurrentUser();
+  const { isLoading: isFetchingUser } = useGetCurrentUser();
 
   if (isFetchingUser) {
     return (
