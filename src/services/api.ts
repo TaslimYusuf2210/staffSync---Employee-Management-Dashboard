@@ -1,10 +1,4 @@
 import axios, { AxiosError } from 'axios';
-import type {
-  LoginPayload,
-  RegisterPayload,
-  LoginResponse,
-  RegisterResponse,
-} from '../types/auth';
 
 /**
  * API Service — centralized HTTP client powered by Axios.
@@ -88,34 +82,6 @@ async function request<T>(
   });
   return response.data;
 }
-
-// ─── Auth ────────────────────────────────────────────────────────────
-
-export const authApi = {
-  login: (payload: LoginPayload) =>
-    request<LoginResponse>('/auth/login', {
-      method: 'POST',
-      data: payload,
-    }),
-
-  register: (payload: RegisterPayload) =>
-    request<RegisterResponse>('/auth/register', {
-      method: 'POST',
-      data: payload,
-    }),
-
-  forgotPassword: (email: string) =>
-    request<{ message: string }>('/auth/forgot-password', {
-      method: 'POST',
-      data: { email },
-    }),
-
-  changePassword: (payload: { currentPassword: string; newPassword: string; confirmPassword: string }) =>
-    request<{ message: string }>('/auth/change-password', {
-      method: 'PUT',
-      data: payload,
-    }),
-};
 
 // ─── Generic ─────────────────────────────────────────────────────────
 
