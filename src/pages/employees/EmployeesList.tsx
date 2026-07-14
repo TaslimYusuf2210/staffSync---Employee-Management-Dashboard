@@ -8,36 +8,26 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { Pagination } from '../../components/Pagination';
 import { EmptyState } from '../../components/EmptyState';
 import { AddEmployeeDialog } from './components/AddEmployeeDialog';
+import { useGetEmployees } from '@/hooks/useQuery/useGetEmployees';
 
 export default function EmployeesList() {
-  const { employees, departments, deleteEmployee } = useApp();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [sortBy, setSortBy] = useState<'name' | 'dept' | 'joined'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
 
-  const processedEmployees = [...employees]
-    .filter((emp) => {
-      const matchesSearch =
-        `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.id.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesDept = selectedDept === 'All' || emp.department === selectedDept;
-      return matchesSearch && matchesDept;
-    })
-    .sort((a, b) => {
-      let comparison = 0;
-      if (sortBy === 'name') comparison = `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
-      else if (sortBy === 'dept') comparison = a.department.localeCompare(b.department);
-      else if (sortBy === 'joined') comparison = new Date(a.hireDate).getTime() - new Date(b.hireDate).getTime();
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-  const totalPages = Math.ceil(processedEmployees.length / itemsPerPage);
-  const paginatedEmployees = processedEmployees.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const {data: employeesData, isLoading: isEmployeesLoading, isError: isEmployeesError} = useGetEmployees({
+    page: currentPage,
+    limit: 10,
+    search: searchTerm,
+    department: selectedDept === 'All' ? undefined : selectedDept,
+    sortBy,
+    sortOrder,
+  });
+  console.log('Employees Data:', employeesData);
+  const { departments, deleteEmployee } = useApp();
 
   const toggleSort = (field: 'name' | 'dept' | 'joined') => {
     if (sortBy === field) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -117,8 +107,30 @@ export default function EmployeesList() {
       </div>
 
       {/* ROSTER TABLE CONTAINER */}
-      <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm overflow-hidden">
-        {paginatedEmployees.length === 0 ? (
+      <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm">
+        {isEmployeesLoading ? (
+          <div className="p-6 space-y-4 animate-pulse">
+            <div className="h-4 bg-neutral-200 rounded w-1/4" />
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="h-10 bg-neutral-100 rounded w-8" />
+                  <div className="h-10 bg-neutral-100 rounded w-20" />
+                  <div className="h-10 bg-neutral-100 rounded flex-1" />
+                  <div className="h-10 bg-neutral-100 rounded w-28" />
+                  <div className="h-10 bg-neutral-100 rounded w-32" />
+                  <div className="h-10 bg-neutral-100 rounded w-20" />
+                  <div className="h-10 bg-neutral-100 rounded w-24" />
+                  <div className="h-10 bg-neutral-100 rounded w-10" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : isEmployeesError ? (
+          <div className="p-8 text-center">
+            <p className="text-neutral-400 text-sm">Failed to load employees data</p>
+          </div>
+        ) : employeesData?.data?.employees?.length === 0 ? (
           <EmptyState icon={peopleIcon} title="No employees found" description="Try adjusting your search criteria or register a new team member." />
         ) : (
           <Table>
@@ -135,9 +147,9 @@ export default function EmployeesList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedEmployees.map((emp, index) => (
+              {employeesData?.data?.employees?.map((emp, index) => (
                 <TableRow key={emp.id}>
-                  <TableCell className="text-neutral-500 font-bold">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                  <TableCell className="text-neutral-500 font-bold">{((currentPage - 1) * (employeesData?.data?.pagination?.limit ?? 10)) + index + 1}</TableCell>
                   <TableCell className="font-bold text-neutral-950">{emp.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -166,7 +178,7 @@ export default function EmployeesList() {
             </Table>
         )}
 
-        <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={processedEmployees.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+        <Pagination currentPage={currentPage} totalPages={employeesData?.data?.pagination?.totalPages || 1} totalItems={employeesData?.data?.pagination?.totalItems || 0} itemsPerPage={10} onPageChange={setCurrentPage} />
       </div>
     </div>
     </>
