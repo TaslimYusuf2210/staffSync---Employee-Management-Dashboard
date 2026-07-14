@@ -171,6 +171,32 @@ Used `queryClient.invalidateQueries({ queryKey: ['departments'] })` inside `useC
 
 ---
 
+## 2026-07-14
+
+### `unknown` vs `any` in TypeScript
+
+Learned the difference between `unknown` and `any`. Both accept any value, but `unknown` is type-safe — you must narrow it before use, while `any` disables all checks.
+
+```ts
+let value: unknown;
+value = "hello";
+value.toUpperCase(); // ❌ Error — must narrow first
+
+if (typeof value === "string") {
+  value.toUpperCase(); // ✅ OK — narrowed to string
+}
+```
+
+Prefer `unknown` over `any` for API responses, user input, or any data you don't control — forces validation at compile time instead of runtime crashes.
+
+### Built a multi-step employee creation dialog
+Created a 4-step dialog (Personal Info → Employment → Review → Success) with stepper navigation, field validation per step via `trigger()`, and completed-steps tracking. Each step must be validated before advancing, and the success step locks all navigation.
+
+### Added dropdown menu component
+Built a reusable `DropdownMenu` with `position: fixed` to avoid overflow clipping, used to replace inline action buttons in the departments table with a three-dots menu (View, Edit, Delete with icons).
+
+---
+
 ### `{...register()}` Spread Overwrites Manual `onChange`
 
 Learned that `{...register('fieldName')}` already contains an `onChange` handler that react-hook-form needs to track the input value. If you add a separate `onChange` prop after the spread, it **overwrites** RHF's onChange — the form field stops updating.
