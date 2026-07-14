@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { PageHeader } from '../../components/PageHeader';
 import { Avatar } from '../../components/ui/avatar';
@@ -9,6 +9,8 @@ import { Pagination } from '../../components/Pagination';
 import { EmptyState } from '../../components/EmptyState';
 import { AddEmployeeDialog } from './components/AddEmployeeDialog';
 import { useGetEmployees } from '@/hooks/useQuery/useGetEmployees';
+import { useGetDepartments } from '@/hooks/useQuery/useGetDepartments';
+import { DropdownMenu } from '../../components/ui/dropdown-menu';
 
 export default function EmployeesList() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -21,14 +23,13 @@ export default function EmployeesList() {
   const {data: employeesData, isLoading: isEmployeesLoading, isError: isEmployeesError} = useGetEmployees({
     page: currentPage,
     limit: 10,
-    search: searchTerm,
+    search: searchTerm || undefined,
     department: selectedDept === 'All' ? undefined : selectedDept,
     sortBy,
     sortOrder,
   });
-  console.log('Employees Data:', employeesData);
-  const { departments, deleteEmployee } = useApp();
-
+  const {data: departmentsData} = useGetDepartments();
+  const { deleteEmployee } = useApp();  const navigate = useNavigate();
   const toggleSort = (field: 'name' | 'dept' | 'joined') => {
     if (sortBy === field) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     else { setSortBy(field); setSortOrder('asc'); }
@@ -99,7 +100,7 @@ export default function EmployeesList() {
             className="w-full py-2.5 px-3 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-neutral-900"
           >
             <option value="All">All Departments</option>
-            {departments.map((d) => (
+            {departmentsData?.data?.departments?.map((d) => (
               <option key={d.id} value={d.name}>{d.name}</option>
             ))}
           </select>
@@ -168,9 +169,27 @@ export default function EmployeesList() {
                   <TableCell className="text-neutral-600 font-semibold">{emp.position}</TableCell>
                   <TableCell><StatusBadge status={emp.status} /></TableCell>
                   <TableCell className="font-bold text-neutral-500">{emp.hireDate}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                      <Link to={`/dashboard/employees/${emp.id}`} className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 text-[10px] font-bold rounded-lg text-neutral-800 transition-all">View</Link>
-                      <button onClick={() => handleDelete(emp.id, `${emp.firstName} ${emp.lastName}`)} className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer">Delete</button>
+                  <TableCell className="text-right">
+                      <DropdownMenu
+                        trigger={
+                          <svg className="w-6 h-6 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 5v.01M12 12v.01M12 19v.01" />
+                          </svg>
+                        }
+                        items={[
+                          {
+                            label: 'View',
+                            icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
+                            onClick: () => navigate(`/dashboard/employees/${emp.id}`),
+                          },
+                          {
+                            label: 'Delete',
+                            icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+                            onClick: () => handleDelete(emp.id, `${emp.firstName} ${emp.lastName}`),
+                            danger: true,
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

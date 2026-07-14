@@ -44,6 +44,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
     handleSubmit,
     watch,
     trigger,
+    reset,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
@@ -91,6 +92,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
   const handleClose = () => {
     setStep(0);
     setCompletedSteps(new Set());
+    reset();
     onClose();
   };
 
@@ -101,6 +103,19 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
 
   return (
     <Dialog open={open} onClose={handleClose}>
+      {/* Close Icon */}
+      <div className="flex justify-end -mt-1 -mr-1 mb-3">
+        <button
+          type="button"
+          onClick={handleClose}
+          className="p-1 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
+        >
+          <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-6">
         {STEPS.map((label, i) => {
@@ -298,7 +313,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
               Cancel
             </button>
           )}
-          {step === 2 && (
+          {step > 0 && step < 3 && (
             <button
               type="button"
               onClick={() => setStep(step - 1)}
