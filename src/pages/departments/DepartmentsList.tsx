@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 import type { Department } from "../../types/dashboard/department";
 import { useGetDepartments } from "../../hooks/useQuery/useGetDepartments";
 import { AddDepartmentDialog } from "./components/AddDepartmentDialog";
 import { EditDepartmentDialog } from "./components/EditDepartmentDialog";
+import { DropdownMenu } from "../../components/ui/dropdown-menu";
 
 export default function DepartmentsList() {
+  const navigate = useNavigate();
   const { data: departmentsData, isLoading: isDepartmentsLoading, isError: isDepartmentsError } = useGetDepartments();
   const departments = departmentsData?.data?.departments ?? [];
   const { employees, deleteDepartment } = useApp();
@@ -50,7 +52,7 @@ export default function DepartmentsList() {
       <EditDepartmentDialog department={editingDep} onClose={() => setEditingDep(null)} />
 
       {/* DEPARTMENTS TABLE */}{" "}
-      <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm">
         {" "}
         {isDepartmentsLoading ? (
           <div className="p-6 space-y-4 animate-pulse">
@@ -142,25 +144,32 @@ export default function DepartmentsList() {
                       <td className="p-4 font-bold text-neutral-500">
                         {dep.dateCreated}
                       </td>
-                      <td className="p-4 text-right space-x-2">
-                        <Link
-                          to={`/dashboard/departments/${dep.id}`}
-                          className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 text-[10px] font-bold rounded-lg text-neutral-800 transition-all"
-                        >
-                          Details
-                        </Link>
-                        <button
-                          onClick={() => setEditingDep(dep)}
-                          className="px-2.5 py-1 bg-neutral-100 hover:bg-neutral-200 text-[10px] font-bold rounded-lg text-neutral-800 transition-all cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(dep.id, dep.name)}
-                          className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer"
-                        >
-                          Delete
-                        </button>
+                      <td className="p-4 text-right">
+                        <DropdownMenu
+                          trigger={
+                            <svg className="w-6 h-6 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 5v.01M12 12v.01M12 19v.01" />
+                            </svg>
+                          }
+                          items={[
+                            {
+                              label: 'View',
+                              icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
+                              onClick: () => navigate(`/dashboard/departments/${dep.id}`),
+                            },
+                            {
+                              label: 'Edit',
+                              icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
+                              onClick: () => setEditingDep(dep),
+                            },
+                            {
+                              label: 'Delete',
+                              icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+                              onClick: () => handleDelete(dep.id, dep.name),
+                              danger: true,
+                            },
+                          ]}
+                        />
                       </td>
                     </tr>
                   );
