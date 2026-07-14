@@ -1,6 +1,6 @@
 import { Badge } from './ui/badge';
 
-type EmployeeStatus = 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated';
+type EmployeeStatus = 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated' | 'OnLeave';
 
 const statusVariantMap: Record<EmployeeStatus, 'active' | 'inactive' | 'probation' | 'danger'> = {
   Active: 'active',
@@ -8,6 +8,7 @@ const statusVariantMap: Record<EmployeeStatus, 'active' | 'inactive' | 'probatio
   Probation: 'probation',
   Resigned: 'danger',
   Terminated: 'danger',
+  OnLeave: 'inactive',
 };
 
 export function StatusBadge({ status }: { status: string }) {

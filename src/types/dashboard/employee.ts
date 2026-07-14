@@ -45,7 +45,7 @@ export interface Employee {
   position: string;
   employmentType: 'Full-time' | 'Part-time' | 'Contract' | 'Intern' | 'Remote';
   hireDate: string;
-  status: 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated';
+  status: 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated' | 'OnLeave';
   dob: string;
   address: string;
   emergencyContact: string;
@@ -128,7 +128,7 @@ export interface EmployeeQueryParams {
   limit?: number;
   search?: string;
   department?: string;
-  status?: 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated';
+  status?: 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated' | 'OnLeave';
   sortBy?: 'name' | 'dept' | 'joined';
   sortOrder?: 'asc' | 'desc';
 }

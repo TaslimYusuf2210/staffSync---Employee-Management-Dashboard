@@ -32,7 +32,7 @@ export function EmploymentTab({ employee, departments, onSave }: EmploymentTabPr
     { label: 'Employment Type', name: 'employmentType' as const, type: 'select' as const, options: ['Full-time', 'Part-time', 'Contract', 'Intern', 'Remote'] },
     { label: 'Hire Date', name: 'hireDate' as const, type: 'date' },
     { label: 'Reporting Manager', name: 'reportingManager' as const },
-    { label: 'Employment Status', name: 'status' as const, type: 'select' as const, options: ['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated'] },
+    { label: 'Employment Status', name: 'status' as const, type: 'select' as const, options: ['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated', 'OnLeave'] },
   ];
 
   const editableFields = fields.filter((f) => !f.readOnly);

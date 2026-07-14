@@ -52,4 +52,4 @@ export interface AvatarProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export type EmployeeStatus = 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated';
+export type EmployeeStatus = 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated' | 'OnLeave';

@@ -7,9 +7,11 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { Pagination } from '../../components/Pagination';
 import { EmptyState } from '../../components/EmptyState';
+import { AddEmployeeDialog } from './components/AddEmployeeDialog';
 
 export default function EmployeesList() {
   const { employees, departments, deleteEmployee } = useApp();
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [sortBy, setSortBy] = useState<'name' | 'dept' | 'joined'>('name');
@@ -57,17 +59,19 @@ export default function EmployeesList() {
   );
 
   return (
-    <div className="space-y-6">
+    <>
+      <AddEmployeeDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} />
+      <div className="space-y-6">
       <PageHeader
         title="Employees"
         description="Manage personnel records, roles, settings, and profile info."
         action={
-          <Link to="/dashboard/employees/create" className="px-4 py-2.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 font-bold rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2">
+          <button onClick={() => setShowAddDialog(true)} className="px-4 py-2.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 font-bold rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
             Add Employee
-          </Link>
+          </button>
         }
       />
 
@@ -165,5 +169,6 @@ export default function EmployeesList() {
         <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={processedEmployees.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
       </div>
     </div>
+    </>
   );
 }
