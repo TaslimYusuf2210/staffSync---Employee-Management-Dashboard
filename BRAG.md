@@ -175,7 +175,7 @@ Used `queryClient.invalidateQueries({ queryKey: ['departments'] })` inside `useC
 
 ### `unknown` vs `any` in TypeScript
 
-Learned the difference between `unknown` and `any`. Both accept any value, but `unknown` is type-safe — you must narrow it before use, while `any` disables all checks.
+`unknown` is the type-safe counterpart of `any`. Both accept any value, but `unknown` forces you to narrow the type before using it, while `any` disables all checks. Prefer `unknown` over `any` for API responses, user input, or any data you don't control.
 
 ```ts
 let value: unknown;
@@ -186,14 +186,6 @@ if (typeof value === "string") {
   value.toUpperCase(); // ✅ OK — narrowed to string
 }
 ```
-
-Prefer `unknown` over `any` for API responses, user input, or any data you don't control — forces validation at compile time instead of runtime crashes.
-
-### Built a multi-step employee creation dialog
-Created a 4-step dialog (Personal Info → Employment → Review → Success) with stepper navigation, field validation per step via `trigger()`, and completed-steps tracking. Each step must be validated before advancing, and the success step locks all navigation.
-
-### Added dropdown menu component
-Built a reusable `DropdownMenu` with `position: fixed` to avoid overflow clipping, used to replace inline action buttons in the departments table with a three-dots menu (View, Edit, Delete with icons).
 
 ---
 

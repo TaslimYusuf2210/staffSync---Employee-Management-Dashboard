@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useApp } from '../../../context/AppContext';
 import { Dialog } from '../../../components/ui/dialog';
+import { useGetDepartments } from '../../../hooks/useQuery/useGetDepartments';
+import { useCreateEmployee } from '../../../hooks/useMutation/useCreateEmployee';
+import { Hourglass } from 'ldrs/react';
+import 'ldrs/react/Hourglass.css';
 
 const employeeSchema = z.object({
   firstName: z.string().min(2, { message: 'First name is required (min 2 characters)' }),
@@ -14,8 +17,8 @@ const employeeSchema = z.object({
   department: z.string().min(1, { message: 'Department is required' }),
   position: z.string().min(2, { message: 'Position is required' }),
   employmentType: z.enum(['Full-time', 'Part-time', 'Contract', 'Intern', 'Remote']),
-  hireDate: z.string().min(10, { message: 'Hire date is required' }),
-  status: z.enum(['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated']),
+  hireDate: z.string().optional(),
+  status: z.enum(['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated', 'OnLeave']).optional(),
 });
 
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
@@ -28,13 +31,19 @@ interface AddEmployeeDialogProps {
 }
 
 export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
-  const [step, setStep] = useState(0);
-  const { departments } = useApp();
+    const [step, setStep] = useState(0);
+    const { mutateAsync: createEmployee, isPending: isCreatingEmployee } = useCreateEmployee({
+      onSuccess: () => setStep(3),
+    });
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const { data: departmentsData } = useGetDepartments();
+  const departments = departmentsData?.data?.departments ?? [];
 
   const {
     register,
     handleSubmit,
     watch,
+    trigger,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
@@ -52,36 +61,71 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
     },
   });
 
+  const stepFields: (keyof EmployeeFormValues)[][] = [
+    ['firstName', 'lastName', 'email', 'phoneNumber', 'gender'],
+    ['department', 'position', 'employmentType'],
+    [],
+    [],
+  ];
+
+  const goToStep = (target: number) => {
+    if (target === step) return;
+    if (target > step) return;
+    if (completedSteps.has(target) || target < step) {
+      setStep(target);
+    }
+  };
+
+  const handleNext = async () => {
+    const fields = stepFields[step];
+    if (fields.length === 0) {
+      setStep((s) => s + 1);
+      return;
+    }
+    const valid = await trigger(fields);
+    if (!valid) return;
+    setCompletedSteps((prev) => new Set(prev).add(step));
+    setStep((s) => s + 1);
+  };
+
   const handleClose = () => {
     setStep(0);
+    setCompletedSteps(new Set());
     onClose();
   };
 
   const onSubmit = (data: EmployeeFormValues) => {
     if (step < 2) return;
-    console.log('Employee Data:', data);
-    setStep(3);
+    createEmployee(data);
   };
 
   return (
     <Dialog open={open} onClose={handleClose}>
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-6">
-        {STEPS.map((label, i) => (
-          <div key={label} className="flex items-center gap-2 flex-1 last:flex-none">
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors ${
-                i <= step ? 'bg-[#ccd5ae] text-neutral-950' : 'bg-neutral-100 text-neutral-400'
-              }`}
-            >
-              {i < step ? '✓' : i + 1}
+        {STEPS.map((label, i) => {
+          const isActive = i <= step;
+          const isCompleted = i < step;
+          const canClick = completedSteps.has(i) || i === step;
+          return (
+            <div key={label} className="flex items-center gap-2 flex-1 last:flex-none">
+              <button
+                type="button"
+                disabled={!canClick || step === 3}
+                onClick={() => goToStep(i)}
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors cursor-pointer disabled:cursor-default ${
+                  isActive || isCompleted ? 'bg-[#ccd5ae] text-neutral-950' : 'bg-neutral-100 text-neutral-400'
+                }`}
+              >
+                {isCompleted ? '✓' : i + 1}
+              </button>
+              <span className={`text-[10px] font-bold hidden sm:block ${isActive || isCompleted ? 'text-neutral-900' : 'text-neutral-400'}`}>
+                {label}
+              </span>
+              {i < STEPS.length - 1 && <div className={`flex-1 h-px ${isCompleted ? 'bg-[#ccd5ae]' : 'bg-neutral-200'}`} />}
             </div>
-            <span className={`text-[10px] font-bold hidden sm:block ${i <= step ? 'text-neutral-900' : 'text-neutral-400'}`}>
-              {label}
-            </span>
-            {i < STEPS.length - 1 && <div className={`flex-1 h-px ${i < step ? 'bg-[#ccd5ae]' : 'bg-neutral-200'}`} />}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -93,27 +137,27 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">First Name</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">First Name <span className="text-red-400">*</span></label>
                 <input type="text" {...register('firstName')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
                 {errors.firstName && <p className="text-red-500 text-[10px] mt-1">{errors.firstName.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Last Name</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Last Name <span className="text-red-400">*</span></label>
                 <input type="text" {...register('lastName')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
                 {errors.lastName && <p className="text-red-500 text-[10px] mt-1">{errors.lastName.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Email Address</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Email Address <span className="text-red-400">*</span></label>
                 <input type="email" {...register('email')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
                 {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Phone Number</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Phone Number <span className="text-red-400">*</span></label>
                 <input type="text" {...register('phoneNumber')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
                 {errors.phoneNumber && <p className="text-red-500 text-[10px] mt-1">{errors.phoneNumber.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Gender</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Gender <span className="text-red-400">*</span></label>
                 <select {...register('gender')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer">
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -133,7 +177,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Department</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Department <span className="text-red-400">*</span></label>
                 <select {...register('department')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer">
                   {departments.map((d) => (
                     <option key={d.id} value={d.name}>{d.name}</option>
@@ -142,12 +186,12 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
                 {errors.department && <p className="text-red-500 text-[10px] mt-1">{errors.department.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Position / Job Title</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Position / Job Title <span className="text-red-400">*</span></label>
                 <input type="text" {...register('position')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
                 {errors.position && <p className="text-red-500 text-[10px] mt-1">{errors.position.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Employment Type</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Employment Type <span className="text-red-400">*</span></label>
                 <select {...register('employmentType')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer">
                   <option value="Full-time">Full-time</option>
                   <option value="Part-time">Part-time</option>
@@ -158,12 +202,12 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
                 {errors.employmentType && <p className="text-red-500 text-[10px] mt-1">{errors.employmentType.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Hire Date</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Hire Date <span className="text-neutral-300 font-normal lowercase">(optional)</span></label>
                 <input type="date" {...register('hireDate')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
                 {errors.hireDate && <p className="text-red-500 text-[10px] mt-1">{errors.hireDate.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Employment Status</label>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Employment Status <span className="text-neutral-300 font-normal lowercase">(optional)</span></label>
                 <select {...register('status')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer">
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -266,7 +310,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
           {step < 2 && (
             <button
               type="button"
-              onClick={() => setStep(step + 1)}
+              onClick={handleNext}
               className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer"
             >
               Next
@@ -275,9 +319,14 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
           {step === 2 && (
             <button
               type="submit"
-              className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer"
+              disabled={isCreatingEmployee}
+              className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Create Employee
+              {isCreatingEmployee ? (
+                <><Hourglass size={14} /> Creating...</>
+              ) : (
+                'Create Employee'
+              )}
             </button>
           )}
           {step === 3 && (

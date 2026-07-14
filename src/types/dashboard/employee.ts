@@ -123,6 +123,19 @@ export interface EmployeesResponse {
   pagination: Pagination;
 }
 
+export interface CreateEmployeePayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  gender: string;
+  department: string;
+  position: string;
+  employmentType: string;
+  hireDate?: string;
+  status?: string;
+}
+
 export interface EmployeeQueryParams {
   page?: number;
   limit?: number;
