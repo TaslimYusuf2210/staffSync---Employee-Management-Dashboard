@@ -204,3 +204,15 @@ Learned that `{...register('fieldName')}` already contains an `onChange` handler
 The spread (`{...register('head')}`) expands to `{ onChange, onBlur, ref, name }`. Any prop placed **after** the spread with the same name replaces the spread's version. Moving the custom logic into `register()`'s second argument lets RHF wrap its own handler around yours so both execute.
 
 ---
+
+### Project Progress — Feature Implementation
+
+Rebuilt the **Add Employee flow** from a simple form into a **multi-step dialog**, then got the full employee lifecycle wired up:
+
+- **Multi-step employee creation** — Replaced the single-form add employee with a multi-step dialog (`3a1998f`), now successfully creating employees end-to-end (`648ef66`).
+- **Employees table integrated** — Wired up the employees list page with real backend data via the `getEmployees` service (`ae8486d`).
+- **Dropdown click-outside fix** — Added a `menuRef` to the `DropdownMenu` component so clicking inside the menu doesn't close it — only clicks outside both the trigger button and the menu panel dismiss it.
+- **Department dialog enhancements** — Added more functionality to the create department dialog (`2ab50e0`).
+- **Employee details (in progress)** — Currently building out the individual employee view: added `getEmployeeById` to the employee service, created a new `useGetOneEmployee` hook, and wiring up the "View" action in the employees list table to navigate to employee details.
+
+---

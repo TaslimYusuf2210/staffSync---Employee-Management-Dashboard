@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { toast } from 'sonner';
 
 /**
  * API Service — centralized HTTP client powered by Axios.
@@ -53,13 +54,23 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ─── Response Interceptor — normalize errors ─────────────────────────
+// ─── Response Interceptor — normalize errors, handle 401 ────────────
 
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiResponse>) => {
     const status = error.response?.status ?? 0;
     const body = error.response?.data;
+
+    if (status === 401) {
+      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      toast.error('Session expired', {
+        description: 'Your session has expired. Please log in again.',
+      });
+      window.location.href = '/login';
+    }
+
     throw new ApiError(
       status,
       body?.message ?? error.message ?? 'Something went wrong',

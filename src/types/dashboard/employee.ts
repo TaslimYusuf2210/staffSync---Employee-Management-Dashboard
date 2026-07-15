@@ -26,6 +26,7 @@ export interface Document {
   name: string;
   type: 'Resume' | 'Employment Letter' | 'Certificates' | 'Other Documents';
   uploadDate: string;
+  fileUrl?: string;
 }
 
 export interface Note {
@@ -145,3 +146,9 @@ export interface EmployeeQueryParams {
   sortBy?: 'name' | 'dept' | 'joined';
   sortOrder?: 'asc' | 'desc';
 }
+
+/** Response shape for GET /employees/:id */
+export interface SingleEmployeeResponse {
+  employee: Employee;
+}
+

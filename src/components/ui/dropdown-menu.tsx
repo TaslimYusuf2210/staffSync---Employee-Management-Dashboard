@@ -15,6 +15,7 @@ interface DropdownMenuProps {
 export function DropdownMenu({ trigger, items }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, right: 0 });
 
   const measure = useCallback(() => {
@@ -26,7 +27,10 @@ export function DropdownMenu({ trigger, items }: DropdownMenuProps) {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (btnRef.current && !btnRef.current.contains(e.target as Node)) {
+      if (
+        btnRef.current && !btnRef.current.contains(e.target as Node) &&
+        menuRef.current && !menuRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -49,6 +53,7 @@ export function DropdownMenu({ trigger, items }: DropdownMenuProps) {
       </button>
       {open && (
         <div
+          ref={menuRef}
           style={{ position: 'fixed', top: position.top, right: position.right, zIndex: 50 }}
           className="w-40 bg-white border border-neutral-200 rounded-xl shadow-lg py-1"
         >

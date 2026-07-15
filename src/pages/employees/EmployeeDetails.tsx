@@ -12,6 +12,7 @@ import { BankTab } from './components/BankTab';
 import { EducationSection } from './components/EducationSection';
 import { DocumentsSection } from './components/DocumentsSection';
 import { NotesSection } from './components/NotesSection';
+import { useGetEmployeeById } from '../../hooks/useQuery/useGetEmployeeById';
 
 const TABS: { key: TabType; label: string }[] = [
   { key: 'overview', label: 'overview' },
@@ -26,16 +27,18 @@ const TABS: { key: TabType; label: string }[] = [
 
 export default function EmployeeDetails() {
   const { id } = useParams<{ id: string }>();
-  const { employees, departments, updateEmployee } = useApp();
+
+  const { departments, updateEmployee } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const employee = employees.find((e) => e.id === id);
+  const { data: employee } = useGetEmployeeById(id);
+  console.log('Employee data:', employee);
 
   if (!employee) {
     return (
       <div className="py-12 text-center">
         <h3 className="font-extrabold text-neutral-800 text-lg">Employee not found</h3>
         <p className="text-sm text-neutral-500 mt-1">The requested profile does not exist in the database.</p>
-        <Link to="/dashboard/employees" className="mt-4 inline-block px-4 py-2 bg-[#e9edc9] text-neutral-950 rounded-xl font-bold text-xs">
+        <Link to="/dashboard/employees" className="mt-4 inline-block px-4 py-2 bg-surface-muted text-neutral-950 rounded-xl font-bold text-xs">
           Return to roster
         </Link>
       </div>
