@@ -205,14 +205,40 @@ The spread (`{...register('head')}`) expands to `{ onChange, onBlur, ref, name }
 
 ---
 
-### Project Progress — Feature Implementation
+## 2026-07-15
 
-Rebuilt the **Add Employee flow** from a simple form into a **multi-step dialog**, then got the full employee lifecycle wired up:
+### Axios Response Interceptors — Deep Dive
 
-- **Multi-step employee creation** — Replaced the single-form add employee with a multi-step dialog (`3a1998f`), now successfully creating employees end-to-end (`648ef66`).
-- **Employees table integrated** — Wired up the employees list page with real backend data via the `getEmployees` service (`ae8486d`).
-- **Dropdown click-outside fix** — Added a `menuRef` to the `DropdownMenu` component so clicking inside the menu doesn't close it — only clicks outside both the trigger button and the menu panel dismiss it.
-- **Department dialog enhancements** — Added more functionality to the create department dialog (`2ab50e0`).
-- **Employee details (in progress)** — Currently building out the individual employee view: added `getEmployeeById` to the employee service, created a new `useGetOneEmployee` hook, and wiring up the "View" action in the employees list table to navigate to employee details.
+Learned how Axios interceptors work as middleware between the server's raw response and the calling code.
+
+- **Two handlers**: fulfilled (2xx) and rejected (4xx/5xx). The fulfilled handler passes the response through; the rejected handler normalizes errors.
+- **401 interceptor**: Added a centralized handler that clears tokens and redirects to `/login` when the server returns 401 on any endpoint *except* `/auth/login` (where 401 means "invalid credentials," not "expired session").
+- **Why the exception**: The login endpoint returns 401 for wrong passwords — catching that with the session-expiry handler caused a redirect loop that looked like a page reload.
+- **`ApiResponse<T>` wrapper**: Every API response passes through the generic `request<T>` helper which returns `Promise<ApiResponse<T>>`, keeping the response shape consistent across all endpoints.
+
+### `mutate` vs `mutateAsync`
+
+- **`mutate`** fires and forgets — no promise, no unhandled rejections. Use it when you only care about `onSuccess`/`onError` callbacks.
+- **`mutateAsync`** returns a Promise — you `await` it when you need to chain logic after the mutation settles.
+- If you use `mutateAsync` without `await`/`.catch()`, a rejected mutation becomes an unhandled promise rejection, which can crash the React tree and trigger a Vite HMR reload.
+
+### React Query `onSuccess` vs `onError` — HTTP vs Business Logic
+
+- `onSuccess` fires when the **HTTP status** is 2xx.
+- `onError` fires when the **HTTP status** is 4xx/5xx.
+- A backend returning `200 OK` with `{ success: false }` still hits `onSuccess` — Axios doesn't know about business-logic failures. The `data?.data?.token` check in `useLogin` is a safety net for this edge case.
+
+### Logging In — Full Flow Traced
+
+Mapped the complete authentication flow: form → `useLogin` mutation → `auth.ts` service → Axios → backend → token storage → `ProtectedRoute` → `Layout` → `useGetCurrentUser`.
+
+- **`rememberMe`** determines storage: `localStorage` (persists across browser close) vs `sessionStorage` (cleared on tab close).
+- **`ProtectedRoute`** checks for token string existence — it doesn't validate the token (the backend does that via `/auth/me`).
+- **SMTP timeout**: Discovered the backend is trying to connect to an email server at `1.179.115.1:587` on login, which times out. Backend fix needed.
+
+### Employee Details — Type Safety Fixes
+
+- Created `SingleEmployeeResponse` type and added `fileUrl` to the `Document` type.
+- Fixed `useGetEmployeeById` hook to unwrap the API response via TanStack Query's `select`, so components receive `Employee | undefined` directly instead of the raw `ApiResponse`.
 
 ---
