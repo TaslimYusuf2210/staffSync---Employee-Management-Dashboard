@@ -49,15 +49,6 @@ export function SuccessStep() {
         </p>
       </div>
 
-      {/* Company address card */}
-      <div
-        className="mt-4 bg-slate-50 rounded-xl p-3 text-left text-sm w-full max-w-xs"
-        style={{ animation: 'floatUp 0.5s ease-out 0.45s both' }}
-      >
-        <p className="text-slate-400 text-xs font-medium">COMPANY ADDRESS</p>
-        <p className="text-slate-800 font-medium">{data.address}</p>
-      </div>
-
       {/* Login CTA */}
       <div style={{ animation: 'floatUp 0.5s ease-out 0.6s both' }} className="mt-6">
         <Link

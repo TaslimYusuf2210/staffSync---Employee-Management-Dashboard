@@ -29,6 +29,8 @@ export default function EmployeesList() {
     sortOrder,
   });
   const {data: departmentsData} = useGetDepartments();
+  console.log('[EmployeesList] employeesData:', employeesData);
+  console.log('[EmployeesList] departmentsData:', departmentsData);
   const { deleteEmployee } = useApp();  const navigate = useNavigate();
   const toggleSort = (field: 'name' | 'dept' | 'joined') => {
     if (sortBy === field) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');

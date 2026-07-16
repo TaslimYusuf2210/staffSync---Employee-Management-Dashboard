@@ -62,7 +62,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status ?? 0;
     const body = error.response?.data;
 
-    if (status === 401) {
+    if (status === 401 && !error.config?.url?.includes('/auth/login')) {
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
       toast.error('Session expired', {

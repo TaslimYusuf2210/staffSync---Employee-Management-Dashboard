@@ -6,12 +6,15 @@ import { useGetDepartments } from "../../hooks/useQuery/useGetDepartments";
 import { AddDepartmentDialog } from "./components/AddDepartmentDialog";
 import { EditDepartmentDialog } from "./components/EditDepartmentDialog";
 import { DropdownMenu } from "../../components/ui/dropdown-menu";
+import { EmptyState } from "../../components/EmptyState";
 
 export default function DepartmentsList() {
   const navigate = useNavigate();
   const { data: departmentsData, isLoading: isDepartmentsLoading, isError: isDepartmentsError } = useGetDepartments();
   const departments = departmentsData?.data?.departments ?? [];
-  const { employees, deleteDepartment } = useApp();
+  console.log('[DepartmentsList] departmentsData:', departmentsData);
+  console.log('[DepartmentsList] departments array being rendered:', departments);
+  const { deleteDepartment } = useApp();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingDep, setEditingDep] = useState<Department | null>(null);
 
@@ -74,30 +77,15 @@ export default function DepartmentsList() {
             <p className="text-neutral-400 text-sm">Failed to load department data</p>
           </div>
         ) : departments.length === 0 ? (
-          <div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-neutral-100 text-neutral-400 font-bold uppercase tracking-wider">
-                    <th className="p-4 font-semibold">S/N</th>
-                    <th className="p-4 font-semibold">ID</th>
-                    <th className="p-4 font-semibold">Department Name</th>
-                    <th className="p-4 font-semibold">Department Head</th>
-                    <th className="p-4 font-semibold">Employee Count</th>
-                    <th className="p-4 font-semibold">Date Created</th>
-                    <th className="p-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colSpan={7} className="p-16 text-center text-neutral-400 text-sm">
-                      No departments registered. Click 'Create Department' to add one.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <EmptyState
+            icon={
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-full h-full">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            }
+            title="No department found"
+            description="Departments help organize your team. Try creating a new department to get started."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
@@ -114,9 +102,7 @@ export default function DepartmentsList() {
               </thead>
               <tbody className="divide-y divide-neutral-100">
                 {departments.map((dep, index) => {
-                  const empCount = employees.filter(
-                    (e) => e.department === dep.name,
-                  ).length;
+                  console.log(`[DepartmentsList] Row ${index + 1}:`, dep);
                   return (
                     <tr
                       key={dep.id}
@@ -139,7 +125,7 @@ export default function DepartmentsList() {
                         {dep.head}
                       </td>
                       <td className="p-4 font-black text-neutral-900">
-                        {empCount} members
+                        {dep.employeeCount} members
                       </td>
                       <td className="p-4 font-bold text-neutral-500">
                         {dep.dateCreated}

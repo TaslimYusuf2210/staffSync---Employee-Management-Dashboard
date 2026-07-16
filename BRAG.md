@@ -212,7 +212,7 @@ The spread (`{...register('head')}`) expands to `{ onChange, onBlur, ref, name }
 Learned how Axios interceptors work as middleware between the server's raw response and the calling code.
 
 - **Two handlers**: fulfilled (2xx) and rejected (4xx/5xx). The fulfilled handler passes the response through; the rejected handler normalizes errors.
-- **401 interceptor**: Added a centralized handler that clears tokens and redirects to `/login` when the server returns 401 on any endpoint *except* `/auth/login` (where 401 means "invalid credentials," not "expired session").
+- **401 interceptor**: Added a centralized handler that clears tokens and redirects to `/login` when the server returns 401 on any endpoint _except_ `/auth/login` (where 401 means "invalid credentials," not "expired session").
 - **Why the exception**: The login endpoint returns 401 for wrong passwords — catching that with the session-expiry handler caused a redirect loop that looked like a page reload.
 - **`ApiResponse<T>` wrapper**: Every API response passes through the generic `request<T>` helper which returns `Promise<ApiResponse<T>>`, keeping the response shape consistent across all endpoints.
 

@@ -3,6 +3,9 @@ import { useApp } from "../../context/AppContext";
 export default function DepartmentDetails() {
   const { id } = useParams<{ id: string }>();
   const { departments, employees } = useApp();
+  console.log('[DepartmentDetails] departments from useApp:', departments);
+  console.log('[DepartmentDetails] employees from useApp:', employees);
+  console.log('[DepartmentDetails] looking for id:', id);
   const department = departments.find((d) => d.id === id);
   if (!department) {
     return (

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Employee } from '../types/dashboard/employee';
-import type { Department } from '../types/dashboard/department';
+import type { Department, DepartmentPosition } from '../types/dashboard/department';
 import type { Settings } from '../types/dashboard/settings';
 
 interface AppContextType {
@@ -28,6 +28,8 @@ interface AppContextType {
   addDepartment: (department: Omit<Department, 'id' | 'dateCreated'>) => void;
   updateDepartment: (id: string, updatedData: Partial<Department>) => void;
   deleteDepartment: (id: string) => void;
+  addDepartmentPosition: (departmentId: string, position: Omit<DepartmentPosition, 'id'>) => void;
+  removeDepartmentPosition: (departmentId: string, positionId: string) => void;
   updateSettings: (updatedSettings: Partial<Settings>) => void;
 }
 
@@ -41,6 +43,11 @@ const initialDepartments: Department[] = [
     description: 'User interface design, experience planning, and product aesthetics research.',
     head: 'Brooklyn Simmons',
     dateCreated: '2024-01-10',
+    positions: [
+      { id: 'pos-1', title: 'Creative Director', description: 'Oversees creative vision and design strategy' },
+      { id: 'pos-2', title: 'UX Designer', description: 'Researches and designs user experiences' },
+      { id: 'pos-3', title: 'UI Designer', description: 'Creates visual interfaces and prototypes' },
+    ],
   },
   {
     id: 'dep-2',
@@ -48,6 +55,11 @@ const initialDepartments: Department[] = [
     description: 'Engineering, stack architecture, DevOps, and frontend-backend development.',
     head: 'Cody Fisher',
     dateCreated: '2024-01-12',
+    positions: [
+      { id: 'pos-4', title: 'Frontend Developer', description: 'Builds client-side applications' },
+      { id: 'pos-5', title: 'Backend Developer', description: 'Develops server-side logic and APIs' },
+      { id: 'pos-6', title: 'DevOps Engineer', description: 'Manages infrastructure and CI/CD pipelines' },
+    ],
   },
   {
     id: 'dep-3',
@@ -55,6 +67,10 @@ const initialDepartments: Department[] = [
     description: 'Talent acquisitions, company benefits, employee retention, and operations.',
     head: 'Brooklyn Simmons',
     dateCreated: '2024-01-15',
+    positions: [
+      { id: 'pos-7', title: 'HR Manager', description: 'Oversees HR operations and policies' },
+      { id: 'pos-8', title: 'Recruiter', description: 'Manages talent acquisition and onboarding' },
+    ],
   },
   {
     id: 'dep-4',
@@ -62,6 +78,11 @@ const initialDepartments: Department[] = [
     description: 'Product marketing campaigns, content strategies, SEO, and public relations.',
     head: 'Lisa Harvey',
     dateCreated: '2024-01-18',
+    positions: [
+      { id: 'pos-9', title: 'Marketing Manager', description: 'Leads marketing campaigns and strategy' },
+      { id: 'pos-10', title: 'Content Strategist', description: 'Develops content plans and copy' },
+      { id: 'pos-11', title: 'SEO Specialist', description: 'Optimizes online presence and search rankings' },
+    ],
   },
 ];
 
@@ -292,6 +313,30 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setDepartments((prev) => prev.filter((dep) => dep.id !== id));
   };
 
+  const addDepartmentPosition = (departmentId: string, position: Omit<DepartmentPosition, 'id'>) => {
+    const newPosition: DepartmentPosition = {
+      ...position,
+      id: `pos-${Date.now()}`,
+    };
+    setDepartments((prev) =>
+      prev.map((dep) =>
+        dep.id === departmentId
+          ? { ...dep, positions: [...dep.positions, newPosition] }
+          : dep
+      )
+    );
+  };
+
+  const removeDepartmentPosition = (departmentId: string, positionId: string) => {
+    setDepartments((prev) =>
+      prev.map((dep) =>
+        dep.id === departmentId
+          ? { ...dep, positions: dep.positions.filter((p) => p.id !== positionId) }
+          : dep
+      )
+    );
+  };
+
   const updateSettings = (updatedSettings: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...updatedSettings }));
   };
@@ -308,6 +353,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addDepartment,
         updateDepartment,
         deleteDepartment,
+        addDepartmentPosition,
+        removeDepartmentPosition,
         updateSettings,
       }}
     >

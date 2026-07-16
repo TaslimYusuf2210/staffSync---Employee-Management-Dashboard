@@ -31,7 +31,8 @@ export default function EmployeeDetails() {
   const { departments, updateEmployee } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const { data: employee } = useGetEmployeeById(id);
-  console.log('Employee data:', employee);
+  console.log('[EmployeeDetails] employee:', employee);
+  console.log('[EmployeeDetails] id from params:', id);
 
   if (!employee) {
     return (

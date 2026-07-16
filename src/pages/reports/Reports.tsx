@@ -1,6 +1,8 @@
 import { useApp } from "../../context/AppContext";
 export default function Reports() {
   const { employees, departments } = useApp();
+  console.log('[Reports] employees from useApp:', employees);
+  console.log('[Reports] departments from useApp:', departments);
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter((e) => e.status === "Active").length;
   const inactiveEmployees = employees.filter(

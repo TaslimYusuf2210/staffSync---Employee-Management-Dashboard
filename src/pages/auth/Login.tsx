@@ -19,7 +19,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const { mutateAsync: loginUser, isPending: isLoggingIn } = useLogin({
+  const { mutate: loginUser, isPending: isLoggingIn } = useLogin({
     onSuccess: () => {
       navigate('/dashboard', { replace: true });
     },
@@ -41,13 +41,12 @@ export default function Login() {
 
   console.log('rememberMe:', watch('rememberMe'));
 
-  const onSubmit = async (data: LoginFormValues) => {
-    const payload = {
+  const onSubmit = (data: LoginFormValues) => {
+    loginUser({
       email: data.email,
       password: data.password,
       rememberMe: data.rememberMe,
-    };
-    loginUser(payload);
+    });
   };
 
   return (

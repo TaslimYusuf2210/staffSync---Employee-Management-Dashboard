@@ -12,7 +12,12 @@ export default function Dashboard() {
 
   const { data: dashboardStats, isError } = useGetDashboardStats();
 
-  console.log("dashboardstats:", dashboardStats);
+  console.log('[Dashboard] dashboardStats (API):', dashboardStats);
+  console.log('[Dashboard] employees (useApp):', employees);
+  console.log('[Dashboard] departments (useApp):', departments);
+  console.log('[Dashboard] employeesByDepartment from API:', dashboardStats?.data?.employeesByDepartment);
+  console.log('[Dashboard] statusDistribution from API:', dashboardStats?.data?.statusDistribution);
+  console.log('[Dashboard] growthTrend from API:', dashboardStats?.data?.growthTrend);
   const totalEmployees = dashboardStats?.data?.totalEmployees ?? 0;
   const activeEmployees = dashboardStats?.data?.activeEmployees ?? 0;
   const recentEmployees = dashboardStats?.data?.recentEmployees ?? [];
