@@ -5,7 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useApp } from '../../../context/AppContext';
 import { Dialog } from '../../../components/ui/dialog';
 import { useGetEmployees } from '../../../hooks/useQuery/useGetEmployees';
+import {useGetDepartmentPositions} from '../../../hooks/useQuery/useGetDepartmentPositions';
 import type { Department, DepartmentPosition } from '../../../types/dashboard/department';
+import { useCreateDepartmentPositions } from '../../../hooks/useMutation/useCreateDepartmentPositions';
 
 const editSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
@@ -21,6 +23,11 @@ interface EditDepartmentDialogProps {
 }
 
 export function EditDepartmentDialog({ department, onClose }: EditDepartmentDialogProps) {
+  const { mutateAsync: createPositions } = useCreateDepartmentPositions(department?.id ?? '', {
+    onSuccess: () => {
+      // Optionally, you can add any additional logic after successfully creating positions
+    },
+  });
   const { updateDepartment } = useApp();
 
   const [positions, setPositions] = useState<DepartmentPosition[]>(department?.positions ?? []);
@@ -33,7 +40,9 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   const { data: employeesData, isLoading: isSearching } = useGetEmployees(
     headSearch.length > 0 ? { search: headSearch, limit: 10 } : undefined
   );
+  const { data: positionsData } = useGetDepartmentPositions(department?.id);
   const employeeList = employeesData?.data?.employees ?? [];
+  const positionsList = positionsData?.data?.positions ?? [];
 
   const {
     register,
@@ -59,17 +68,13 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     }
   }, [department, reset]);
 
-  const handleAddPosition = () => {
-    if (!newPositionTitle.trim()) return;
-    const newPos: DepartmentPosition = {
-      id: `pos-${Date.now()}`,
-      title: newPositionTitle.trim(),
-      description: newPositionDescription.trim() || undefined,
-    };
-    setPositions((prev) => [...prev, newPos]);
-    setNewPositionTitle('');
-    setNewPositionDescription('');
-    setShowAddPosition(false);
+  const handleAddPosition = async () => {
+    const payload = { title: newPositionTitle, description: newPositionDescription };
+      await createPositions(payload);
+      setNewPositionTitle('');
+      setNewPositionDescription('');
+      setShowAddPosition(false);
+    
   };
 
   const handleRemovePosition = (id: string) => {
@@ -170,12 +175,12 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
             </button>
           </div>
 
-          {positions.length === 0 && !showAddPosition && (
+          { positionsList.length === 0 && !showAddPosition && (
             <p className="text-[11px] text-neutral-400 italic">No positions defined yet.</p>
           )}
 
           <div className="space-y-1.5">
-            {positions.map((pos) => (
+            {positionsList.map((pos) => (
               <div key={pos.id} className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2">
                 <div>
                   <p className="text-xs font-bold text-neutral-900">{pos.title}</p>

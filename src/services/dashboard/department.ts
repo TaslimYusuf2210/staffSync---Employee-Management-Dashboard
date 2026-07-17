@@ -12,7 +12,7 @@ export const createDepartments = (payload: CreateDepartmentPayload) =>
     data: payload
   });
 
-export const createDepartmentPositions = (departmentId: string, payload: CreateDepartmentPositionItem[]) =>
+export const createDepartmentPositions = (departmentId: string, payload: CreateDepartmentPositionItem) =>
   request<any>(`/departments/${departmentId}/positions`, {
     method: 'POST',
     data: payload
@@ -23,7 +23,7 @@ export const getDepartmentById = (id: string) =>
     method: 'GET',
   });
 
-export const getDepartmentPositions = (id: string) =>
+export const getDepartmentPositions = (id: string | undefined) =>
   request<DepartmentPositionsData>(`/departments/${id}/positions`, {
     method: 'GET',
   });
