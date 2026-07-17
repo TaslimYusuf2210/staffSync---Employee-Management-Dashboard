@@ -1,12 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { useApp } from "../../context/AppContext";
+import { useGetDepartmentById } from "@/hooks/useQuery/useGetDepartmentById";
+
 export default function DepartmentDetails() {
-  const { id } = useParams<{ id: string }>();
-  const { departments, employees } = useApp();
-  console.log('[DepartmentDetails] departments from useApp:', departments);
-  console.log('[DepartmentDetails] employees from useApp:', employees);
-  console.log('[DepartmentDetails] looking for id:', id);
-  const department = departments.find((d) => d.id === id);
+  const { id } = useParams<{ id: string | undefined }>();
+  const { data: departmentData } = useGetDepartmentById(id);
+  console.log('[DepartmentDetails] departmentData:', departmentData);
+  const department = departmentData?.data?.department;
+  const members = departmentData?.data?.members || [];
   if (!department) {
     return (
       <div className="py-12 text-center">
@@ -27,9 +27,7 @@ export default function DepartmentDetails() {
       </div>
     );
   }
-  const deptEmployees = employees.filter(
-    (e) => e.department === department.name,
-  );
+  
   return (
     <div className="space-y-6">
       {" "}
@@ -83,7 +81,7 @@ export default function DepartmentDetails() {
               Members
             </span>{" "}
             <p className="font-black text-neutral-950 text-xl mt-1">
-              {deptEmployees.length}
+              {members.length}
             </p>{" "}
           </div>{" "}
         </div>{" "}
@@ -100,7 +98,7 @@ export default function DepartmentDetails() {
             All employees currently assigned to {department.name}.
           </p>{" "}
         </div>{" "}
-        {deptEmployees.length === 0 ? (
+        {members.length === 0 ? (
           <div className="p-12 text-center text-neutral-400 text-sm">
             {" "}
             No employees assigned to this department yet.{" "}
@@ -123,7 +121,7 @@ export default function DepartmentDetails() {
               </thead>{" "}
               <tbody className="divide-y divide-neutral-100">
                 {" "}
-                {deptEmployees.map((emp) => (
+                {members.map((emp) => (
                   <tr
                     key={emp.id}
                     className="hover:bg-neutral-50/50 :bg-[#faedcd]/30 transition-all"

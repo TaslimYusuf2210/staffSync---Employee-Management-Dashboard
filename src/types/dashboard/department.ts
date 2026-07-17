@@ -32,3 +32,21 @@ export interface UpdateDepartmentPayload {
   head?: string;
   positions?: DepartmentPosition[];
 }
+
+// ─── Single Department Response (GET /departments/:id) ──────────────
+
+export interface DepartmentMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  position: string;
+  status: string;
+  hireDate: string;
+  photoUrl?: string;
+}
+
+export interface SingleDepartmentData {
+  department: Department;
+  members: DepartmentMember[];
+}

@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useApp } from '../../../context/AppContext';
 import { Dialog } from '../../../components/ui/dialog';
-import type { Department } from '../../../types/dashboard/department';
+import type { Department, DepartmentPosition } from '../../../types/dashboard/department';
 
 const editSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
@@ -22,6 +22,11 @@ interface EditDepartmentDialogProps {
 export function EditDepartmentDialog({ department, onClose }: EditDepartmentDialogProps) {
   const { updateDepartment } = useApp();
 
+  const [positions, setPositions] = useState<DepartmentPosition[]>(department?.positions ?? []);
+  const [showAddPosition, setShowAddPosition] = useState(false);
+  const [newPositionTitle, setNewPositionTitle] = useState('');
+  const [newPositionDescription, setNewPositionDescription] = useState('');
+
   const {
     register,
     handleSubmit,
@@ -35,17 +40,44 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   useEffect(() => {
     if (department) {
       reset({ name: department.name, description: department.description, head: department.head });
+      setPositions(department.positions ?? []);
     }
   }, [department, reset]);
 
+  const handleAddPosition = () => {
+    if (!newPositionTitle.trim()) return;
+    const newPos: DepartmentPosition = {
+      id: `pos-${Date.now()}`,
+      title: newPositionTitle.trim(),
+      description: newPositionDescription.trim() || undefined,
+    };
+    setPositions((prev) => [...prev, newPos]);
+    setNewPositionTitle('');
+    setNewPositionDescription('');
+    setShowAddPosition(false);
+  };
+
+  const handleRemovePosition = (id: string) => {
+    setPositions((prev) => prev.filter((p) => p.id !== id));
+  };
+
   const onSubmit = (data: EditFormValues) => {
     if (!department) return;
-    updateDepartment(department.id, { name: data.name, description: data.description, head: data.head || 'Not assigned' });
+    updateDepartment(department.id, {
+      name: data.name,
+      description: data.description,
+      head: data.head || 'Not assigned',
+      positions,
+    });
     onClose();
   };
 
   const handleClose = () => {
     reset();
+    setPositions(department?.positions ?? []);
+    setShowAddPosition(false);
+    setNewPositionTitle('');
+    setNewPositionDescription('');
     onClose();
   };
 
@@ -72,7 +104,95 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
             {errors.description && <p className="text-red-500 text-[10px] mt-1">{errors.description.message}</p>}
           </div>
         </div>
-        <div className="flex gap-2 justify-end pt-2">
+
+        {/* ─── Positions Section ───────────────────────────────────── */}
+        <div className="border-t border-neutral-100 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Positions</span>
+            <button
+              type="button"
+              onClick={() => setShowAddPosition(true)}
+              className="text-[10px] font-bold text-[#ccd5ae] hover:text-[#faedcd] transition-colors cursor-pointer"
+            >
+              + Add Position
+            </button>
+          </div>
+
+          {positions.length === 0 && !showAddPosition && (
+            <p className="text-[11px] text-neutral-400 italic">No positions defined yet.</p>
+          )}
+
+          <div className="space-y-1.5">
+            {positions.map((pos) => (
+              <div key={pos.id} className="flex items-center justify-between bg-neutral-50 rounded-xl px-3 py-2">
+                <div>
+                  <p className="text-xs font-bold text-neutral-900">{pos.title}</p>
+                  {pos.description && (
+                    <p className="text-[10px] text-neutral-400">{pos.description}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemovePosition(pos.id)}
+                  className="text-neutral-400 hover:text-red-500 transition-colors cursor-pointer shrink-0 ml-2"
+                  title="Remove position"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {showAddPosition && (
+            <div className="mt-3 bg-neutral-50 rounded-xl p-3 space-y-2 border border-neutral-200">
+              <div>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Title</label>
+                <input
+                  type="text"
+                  value={newPositionTitle}
+                  onChange={(e) => setNewPositionTitle(e.target.value)}
+                  placeholder="e.g. Senior Designer"
+                  className="w-full py-1.5 px-2.5 border border-neutral-200 rounded-lg text-xs focus:outline-none focus:border-[#ccd5ae]"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  value={newPositionDescription}
+                  onChange={(e) => setNewPositionDescription(e.target.value)}
+                  placeholder="e.g. Leads the design team"
+                  className="w-full py-1.5 px-2.5 border border-neutral-200 rounded-lg text-xs focus:outline-none focus:border-[#ccd5ae]"
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddPosition(false);
+                    setNewPositionTitle('');
+                    setNewPositionDescription('');
+                  }}
+                  className="px-2.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-[10px] font-bold rounded-lg cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddPosition}
+                  className="px-2.5 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-[10px] font-bold rounded-lg cursor-pointer"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2 justify-end pt-2 border-t border-neutral-100">
           <button type="button" onClick={handleClose} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
           <button type="submit" className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">Save Changes</button>
         </div>
