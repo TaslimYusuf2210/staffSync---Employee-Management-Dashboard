@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useApp } from '../../../context/AppContext';
 import { Dialog } from '../../../components/ui/dialog';
+import { useGetEmployees } from '../../../hooks/useQuery/useGetEmployees';
 import type { Department, DepartmentPosition } from '../../../types/dashboard/department';
 
 const editSchema = z.object({
@@ -26,16 +27,30 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   const [showAddPosition, setShowAddPosition] = useState(false);
   const [newPositionTitle, setNewPositionTitle] = useState('');
   const [newPositionDescription, setNewPositionDescription] = useState('');
+  const [headSearch, setHeadSearch] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const { data: employeesData, isLoading: isSearching } = useGetEmployees(
+    headSearch.length > 0 ? { search: headSearch, limit: 10 } : undefined
+  );
+  const employeeList = employeesData?.data?.employees ?? [];
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<EditFormValues>({
     resolver: zodResolver(editSchema),
     defaultValues: { name: '', description: '', head: '' },
   });
+
+  const selectEmployee = (name: string) => {
+    setValue('head', name);
+    setHeadSearch('');
+    setShowDropdown(false);
+  };
 
   useEffect(() => {
     if (department) {
@@ -78,13 +93,15 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     setShowAddPosition(false);
     setNewPositionTitle('');
     setNewPositionDescription('');
+    setHeadSearch('');
+    setShowDropdown(false);
     onClose();
   };
 
   return (
     <Dialog open={!!department} onClose={handleClose}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider pb-2 border-b border-neutral-100">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+        <h3 className="font-extrabold text-sm text-neutral-900 uppercase tracking-wider pb-2 border-b border-neutral-100 shrink-0">
           Edit Department: {department?.name}
         </h3>
         <div className="space-y-4">
@@ -95,8 +112,43 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
           </div>
           <div>
             <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Department Head / Manager</label>
-            <input type="text" {...register('head')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
-            {errors.head && <p className="text-red-500 text-[10px] mt-1">{errors.head.message}</p>}
+            <div className="relative">
+              <input
+                placeholder="Search employee..."
+                type="text"
+                {...register('head', {
+                  onChange: (e) => {
+                    setHeadSearch(e.target.value);
+                    setShowDropdown(true);
+                  },
+                })}
+                onFocus={() => headSearch && setShowDropdown(true)}
+                className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+              />
+              {errors.head && <p className="text-red-500 text-[10px] mt-1">{errors.head.message}</p>}
+
+              {showDropdown && headSearch.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                  {isSearching ? (
+                    <div className="p-3 text-xs text-neutral-400 text-center">Searching...</div>
+                  ) : employeeList.length === 0 ? (
+                    <div className="p-3 text-xs text-neutral-400 text-center">No employees found</div>
+                  ) : (
+                    employeeList.map((emp) => (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        onClick={() => selectEmployee(`${emp.firstName} ${emp.lastName}`)}
+                        className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
+                      >
+                        <span className="font-bold text-neutral-900">{emp.firstName} {emp.lastName}</span>
+                        <span className="block text-[10px] text-neutral-400">{emp.department} &middot; {emp.position}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Description</label>

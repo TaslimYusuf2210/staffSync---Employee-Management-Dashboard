@@ -4,6 +4,9 @@ export interface DepartmentPosition {
   id: string;
   title: string;
   description?: string;
+  departmentId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Department {
@@ -49,4 +52,17 @@ export interface DepartmentMember {
 export interface SingleDepartmentData {
   department: Department;
   members: DepartmentMember[];
+}
+
+// ─── Create Department Positions Payload ────────────────────────────
+
+export interface CreateDepartmentPositionItem {
+  title: string;
+  description?: string;
+}
+
+// ─── Department Positions Response (GET /departments/:id/positions) ─
+
+export interface DepartmentPositionsData {
+  positions: DepartmentPosition[];
 }
