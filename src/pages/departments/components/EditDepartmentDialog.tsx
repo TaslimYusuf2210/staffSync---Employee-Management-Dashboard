@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,6 +34,8 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   });
   const { mutateAsync: deletePosition, isPending: isDeletingPosition } = useDeleteDepartmentPosition(department?.id ?? '');
 
+  const initialValues = useRef({ name: '', description: '', head: '' });
+
   const [confirmDeletePosition, setConfirmDeletePosition] = useState<{ id: string; title: string } | null>(null);
   const [showAddPosition, setShowAddPosition] = useState(false);
   const [newPositionTitle, setNewPositionTitle] = useState('');
@@ -67,7 +69,8 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
 
   useEffect(() => {
     if (department) {
-      reset({ name: department.name, description: department.description, head: department.head });
+      initialValues.current = { name: department.name, description: department.description, head: department.head };
+      reset(initialValues.current);
     }
   }, [department, reset]);
 
@@ -91,11 +94,16 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
 
   const onSubmit = async (data: EditFormValues) => {
     if (!department) return;
-    await updateDepartment({
-      name: data.name,
-      description: data.description,
-      head: data.head,
-    });
+
+    const { name, description, head } = data;
+    const { name: origName, description: origDesc, head: origHead } = initialValues.current;
+    const hasChanges = name !== origName || description !== origDesc || head !== origHead;
+
+    if (hasChanges) {
+      await updateDepartment({ name, description, head });
+    } else {
+      onClose();
+    }
   };
 
   const handleClose = () => {

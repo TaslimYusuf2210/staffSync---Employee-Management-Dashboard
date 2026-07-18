@@ -1,10 +1,12 @@
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
+import { useGetDepartmentPositions } from "../../hooks/useQuery/useGetDepartmentPositions";
 
-const employeeSchema = z.object({
+const baseSchema = z.object({
   firstName: z
     .string()
     .min(2, { message: "First name is required (min 2 characters)" }),
@@ -14,8 +16,8 @@ const employeeSchema = z.object({
   email: z.string().email({ message: "A valid email address is required" }),
   phoneNumber: z.string().min(6, { message: "Phone number is required" }),
   gender: z.string().min(1, { message: "Gender is required" }),
-  department: z.string().min(1, { message: "Department is required" }),
-  position: z.string().min(2, { message: "Position is required" }),
+  departmentId: z.string().optional(),
+  position: z.string().optional(),
   employmentType: z.enum([
     "Full-time",
     "Part-time",
@@ -27,7 +29,18 @@ const employeeSchema = z.object({
   status: z.enum(["Active", "Inactive", "Probation", "Resigned", "Terminated"]),
 });
 
-type EmployeeFormValues = z.infer<typeof employeeSchema>;
+const createEmployeeSchema = (positionCount: number) =>
+  baseSchema.superRefine((data, ctx) => {
+    if (data.departmentId && positionCount > 0 && (!data.position || data.position.length < 2)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["position"],
+        message: "Position is required when a department is selected",
+      });
+    }
+  });
+
+type EmployeeFormValues = z.infer<ReturnType<typeof createEmployeeSchema>>;
 
 export default function EmployeeCreate() {
   const { departments, addEmployee } = useApp();
@@ -36,16 +49,18 @@ export default function EmployeeCreate() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
       phoneNumber: "",
       gender: "Male",
-      department: departments[0]?.name || "",
+      departmentId: "",
       position: "",
       employmentType: "Full-time",
       hireDate: new Date().toISOString().split("T")[0],
@@ -53,14 +68,20 @@ export default function EmployeeCreate() {
     },
   });
 
+  const selectedDepartmentId = watch("departmentId");
+  const { data: positionsData } = useGetDepartmentPositions(selectedDepartmentId);
+  const positionsList = positionsData?.data?.positions ?? [];
+  const schema = useMemo(() => createEmployeeSchema(positionsList.length), [positionsList.length]);
+
   const onSubmit = (data: EmployeeFormValues) => {
+    const departmentName = departments.find((d) => d.id === data.departmentId)?.name ?? "";
     const newId = addEmployee({
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       phoneNumber: data.phoneNumber,
       gender: data.gender,
-      department: data.department,
+      department: departmentName,
       position: data.position,
       employmentType: data.employmentType,
       hireDate: data.hireDate,
@@ -192,18 +213,21 @@ export default function EmployeeCreate() {
                 Department
               </label>
               <select
-                {...register("department")}
+                {...register("departmentId", {
+                  onChange: () => setValue("position", ""),
+                })}
                 className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 -[#ccd5ae] -[#ccd5ae] text-sm focus:outline-none focus:border-[#ccd5ae]"
               >
+                <option value="">Select a department</option>
                 {departments.map((d) => (
-                  <option key={d.id} value={d.name}>
+                  <option key={d.id} value={d.id}>
                     {d.name}
                   </option>
                 ))}
               </select>
-              {errors.department && (
+              {errors.departmentId && (
                 <p className="text-red-500 text-xs mt-1">
-                  {errors.department.message}
+                  {errors.departmentId.message}
                 </p>
               )}
             </div>
@@ -212,11 +236,26 @@ export default function EmployeeCreate() {
               <label className="text-xs font-bold text-neutral-500 block mb-1">
                 Position / Job Title
               </label>
-              <input
-                type="text"
+              <select
                 {...register("position")}
-                className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 -[#ccd5ae] -[#ccd5ae] text-sm focus:outline-none focus:border-[#ccd5ae]"
-              />
+                disabled={!selectedDepartmentId}
+                className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 -[#ccd5ae] -[#ccd5ae] text-sm focus:outline-none focus:border-[#ccd5ae] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {!selectedDepartmentId ? (
+                  <option value="">Select a department first</option>
+                ) : positionsList.length === 0 ? (
+                  <option value="">No positions available</option>
+                ) : (
+                  <>
+                    <option value="">Select position</option>
+                    {positionsList.map((pos) => (
+                      <option key={pos.id} value={pos.title}>
+                        {pos.title}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
               {errors.position && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.position.message}
