@@ -27,3 +27,9 @@ export const getDepartmentPositions = (id: string | undefined) =>
   request<DepartmentPositionsData>(`/departments/${id}/positions`, {
     method: 'GET',
   });
+
+export const updateDepartment = (id: string, payload: Partial<CreateDepartmentPayload>) =>
+  request<any>(`/departments/${id}`, {
+    method: 'PUT',
+    data: payload
+  });

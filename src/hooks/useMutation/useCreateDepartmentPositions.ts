@@ -8,7 +8,7 @@ export const useCreateDepartmentPositions = (departmentId: string, options?: { o
     return useMutation({
       mutationFn: (payload: CreateDepartmentPositionItem) => createDepartmentPositions(departmentId, payload),
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['department-positions', departmentId] });
+        queryClient.invalidateQueries({ queryKey: ['departmentPositions', departmentId] });
         options?.onSuccess?.();
         toast.success('Department position(s) created successfully!');
       },

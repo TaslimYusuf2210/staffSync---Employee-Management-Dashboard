@@ -8,6 +8,7 @@ import { useGetEmployees } from '../../../hooks/useQuery/useGetEmployees';
 import {useGetDepartmentPositions} from '../../../hooks/useQuery/useGetDepartmentPositions';
 import type { Department, DepartmentPosition } from '../../../types/dashboard/department';
 import { useCreateDepartmentPositions } from '../../../hooks/useMutation/useCreateDepartmentPositions';
+import { useUpdateDepartment } from '../../../hooks/useMutation/useUpdateDepartment';
 
 const editSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
@@ -28,9 +29,8 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
       // Optionally, you can add any additional logic after successfully creating positions
     },
   });
-  const { updateDepartment } = useApp();
+  const { mutateAsync: updateDepartment } = useUpdateDepartment(department?.id ?? '');
 
-  const [positions, setPositions] = useState<DepartmentPosition[]>(department?.positions ?? []);
   const [showAddPosition, setShowAddPosition] = useState(false);
   const [newPositionTitle, setNewPositionTitle] = useState('');
   const [newPositionDescription, setNewPositionDescription] = useState('');
@@ -64,7 +64,6 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   useEffect(() => {
     if (department) {
       reset({ name: department.name, description: department.description, head: department.head });
-      setPositions(department.positions ?? []);
     }
   }, [department, reset]);
 
@@ -78,23 +77,21 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   };
 
   const handleRemovePosition = (id: string) => {
-    setPositions((prev) => prev.filter((p) => p.id !== id));
+    // TODO: wire up delete endpoint
   };
 
   const onSubmit = (data: EditFormValues) => {
     if (!department) return;
-    updateDepartment(department.id, {
+    updateDepartment({
       name: data.name,
       description: data.description,
-      head: data.head || 'Not assigned',
-      positions,
+      head: data.head,
     });
     onClose();
   };
 
   const handleClose = () => {
     reset();
-    setPositions(department?.positions ?? []);
     setShowAddPosition(false);
     setNewPositionTitle('');
     setNewPositionDescription('');
