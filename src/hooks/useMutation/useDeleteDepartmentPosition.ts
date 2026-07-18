@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {toast} from 'sonner';
 import {deleteDepartmentPosition} from '../../services/dashboard/department';
 
-export const useUpdateDepartment = (departmentId: string, options?: { onSuccess?: () => void }) => {
+export const useDeleteDepartmentPosition = (departmentId: string, options?: { onSuccess?: () => void }) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (positionId: string) => deleteDepartmentPosition(departmentId, positionId),

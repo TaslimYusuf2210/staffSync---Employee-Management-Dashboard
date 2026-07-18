@@ -5,7 +5,7 @@ import type { CreateDepartmentPayload } from "../../types/dashboard/department";
 
 export const useUpdateDepartment = (departmentId: string, options?: { onSuccess?: () => void }) => {
   const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: (payload: Partial<CreateDepartmentPayload>) => updateDepartment(departmentId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
@@ -13,5 +13,5 @@ export const useUpdateDepartment = (departmentId: string, options?: { onSuccess?
       toast.success('Department updated successfully!');
     },
   });
-  return { mutateAsync };
+  return { mutateAsync, isPending };
 };

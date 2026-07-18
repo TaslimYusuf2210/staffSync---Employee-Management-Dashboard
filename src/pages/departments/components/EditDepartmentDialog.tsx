@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Hourglass } from 'ldrs/react';
+import 'ldrs/react/Hourglass.css';
 import { Dialog } from '../../../components/ui/dialog';
 import { useGetEmployees } from '../../../hooks/useQuery/useGetEmployees';
 import {useGetDepartmentPositions} from '../../../hooks/useQuery/useGetDepartmentPositions';
 import type { Department } from '../../../types/dashboard/department';
 import { useCreateDepartmentPositions } from '../../../hooks/useMutation/useCreateDepartmentPositions';
 import { useUpdateDepartment } from '../../../hooks/useMutation/useUpdateDepartment';
-import {useDeleteDepartment} from '../../../hooks/useMutation/useDeleteDepartment';
+import { useDeleteDepartmentPosition } from '../../../hooks/useMutation/useDeleteDepartmentPosition';
 
 const editSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
@@ -24,22 +26,15 @@ interface EditDepartmentDialogProps {
 }
 
 export function EditDepartmentDialog({ department, onClose }: EditDepartmentDialogProps) {
-  const { mutateAsync: createPositions } = useCreateDepartmentPositions(department?.id ?? '', {
-    onSuccess: () => {
-      // Optionally, you can add any additional logic after successfully creating positions
-    },
-  });
-  const { mutateAsync: updateDepartment } = useUpdateDepartment(department?.id ?? '', {
+  const { mutateAsync: createPositions, isPending: isAddingPosition } = useCreateDepartmentPositions(department?.id ?? '');
+  const { mutateAsync: updateDepartment, isPending: isUpdatingDepartment } = useUpdateDepartment(department?.id ?? '', {
     onSuccess: () => {
      onClose();
     },
   });
-  const { mutateAsync: deleteDepartmentMutate } = useDeleteDepartment(department?.id ?? '', {
-    onSuccess: () => {
-      onClose();
-    },
-  });
+  const { mutateAsync: deletePosition, isPending: isDeletingPosition } = useDeleteDepartmentPosition(department?.id ?? '');
 
+  const [confirmDeletePosition, setConfirmDeletePosition] = useState<{ id: string; title: string } | null>(null);
   const [showAddPosition, setShowAddPosition] = useState(false);
   const [newPositionTitle, setNewPositionTitle] = useState('');
   const [newPositionDescription, setNewPositionDescription] = useState('');
@@ -77,6 +72,9 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   }, [department, reset]);
 
   const handleAddPosition = async () => {
+    if (!newPositionTitle.trim()) {
+      return;
+    }
     const payload = { title: newPositionTitle, description: newPositionDescription };
       await createPositions(payload);
       setNewPositionTitle('');
@@ -85,18 +83,19 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     
   };
 
-  const handleRemovePosition = (id: string) => {
-    // TODO: wire up delete endpoint
+  const confirmDelete = async () => {
+    if (!confirmDeletePosition) return;
+    await deletePosition(confirmDeletePosition.id);
+    setConfirmDeletePosition(null);
   };
 
-  const onSubmit = (data: EditFormValues) => {
+  const onSubmit = async (data: EditFormValues) => {
     if (!department) return;
-    updateDepartment({
+    await updateDepartment({
       name: data.name,
       description: data.description,
       head: data.head,
     });
-    onClose();
   };
 
   const handleClose = () => {
@@ -106,6 +105,7 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     setNewPositionDescription('');
     setHeadSearch('');
     setShowDropdown(false);
+    setConfirmDeletePosition(null);
     onClose();
   };
 
@@ -196,7 +196,7 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleRemovePosition(pos.id)}
+                  onClick={() => setConfirmDeletePosition({ id: pos.id, title: pos.title })}
                   className="text-neutral-400 hover:text-red-500 transition-colors cursor-pointer shrink-0 ml-2"
                   title="Remove position"
                 >
@@ -246,9 +246,10 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
                 <button
                   type="button"
                   onClick={handleAddPosition}
-                  className="px-2.5 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-[10px] font-bold rounded-lg cursor-pointer"
+                  disabled={!newPositionTitle.trim() || isAddingPosition}
+                  className="px-2.5 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-[10px] font-bold rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
-                  Add
+                  {isAddingPosition ? <><Hourglass size={12} /> Adding...</> : 'Add'}
                 </button>
               </div>
             </div>
@@ -257,9 +258,48 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
 
         <div className="flex gap-2 justify-end pt-2 border-t border-neutral-100">
           <button type="button" onClick={handleClose} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
-          <button type="submit" className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">Save Changes</button>
+          <button type="submit" disabled={isUpdatingDepartment} className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">{isUpdatingDepartment ? <><Hourglass size={14} /> Saving...</> : 'Save Changes'}</button>
         </div>
       </form>
+
+      {/* ─── Confirm Delete Position Overlay ──────────────────────── */}
+      {confirmDeletePosition && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => setConfirmDeletePosition(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-sm font-extrabold text-neutral-900 mb-2">Delete Position</h3>
+              <p className="text-xs text-neutral-500 mb-1">
+                Are you sure you want to delete <span className="font-bold text-neutral-900">{confirmDeletePosition.title}</span>?
+              </p>
+              <p className="text-xs text-red-500 font-semibold mb-5">
+                This action cannot be undone. Positions with active employees assigned cannot be deleted.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeletePosition(null)}
+                  className="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  disabled={isDeletingPosition}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  {isDeletingPosition ? <><Hourglass size={14} /> Deleting...</> : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 }
