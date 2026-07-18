@@ -33,3 +33,8 @@ export const updateDepartment = (id: string, payload: Partial<CreateDepartmentPa
     method: 'PUT',
     data: payload
   });
+
+export const deleteDepartment = (id: string) =>
+  request<any>(`/departments/${id}`, {
+    method: 'DELETE',
+  });
