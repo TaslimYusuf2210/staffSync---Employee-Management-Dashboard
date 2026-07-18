@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,6 +46,8 @@ export default function EmployeeCreate() {
   const { departments, addEmployee } = useApp();
   const navigate = useNavigate();
 
+  const [schema, setSchema] = useState(() => createEmployeeSchema(0));
+
   const {
     register,
     handleSubmit,
@@ -71,7 +73,14 @@ export default function EmployeeCreate() {
   const selectedDepartmentId = watch("departmentId");
   const { data: positionsData } = useGetDepartmentPositions(selectedDepartmentId);
   const positionsList = positionsData?.data?.positions ?? [];
-  const schema = useMemo(() => createEmployeeSchema(positionsList.length), [positionsList.length]);
+  const prevPositionCount = useRef(0);
+
+  useEffect(() => {
+    if (positionsList.length !== prevPositionCount.current) {
+      prevPositionCount.current = positionsList.length;
+      setSchema(createEmployeeSchema(positionsList.length));
+    }
+  }, [positionsList.length]);
 
   const onSubmit = (data: EmployeeFormValues) => {
     const departmentName = departments.find((d) => d.id === data.departmentId)?.name ?? "";
@@ -82,7 +91,7 @@ export default function EmployeeCreate() {
       phoneNumber: data.phoneNumber,
       gender: data.gender,
       department: departmentName,
-      position: data.position,
+      position: data.position ?? "",
       employmentType: data.employmentType,
       hireDate: data.hireDate,
       status: data.status,
@@ -218,9 +227,9 @@ export default function EmployeeCreate() {
                 })}
                 className="w-full py-2.5 px-3.5 rounded-xl border border-neutral-200 -[#ccd5ae] -[#ccd5ae] text-sm focus:outline-none focus:border-[#ccd5ae]"
               >
-                <option value="">Select a department</option>
+                <option value="">Choose a department</option>
                 {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
+                  <option key={d.id} value={d.name}>
                     {d.name}
                   </option>
                 ))}
@@ -249,7 +258,7 @@ export default function EmployeeCreate() {
                   <>
                     <option value="">Select position</option>
                     {positionsList.map((pos) => (
-                      <option key={pos.id} value={pos.title}>
+                      <option key={pos.id} value={pos.id}>
                         {pos.title}
                       </option>
                     ))}
