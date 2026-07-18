@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useApp } from '../../../context/AppContext';
 import { Dialog } from '../../../components/ui/dialog';
 import { useGetEmployees } from '../../../hooks/useQuery/useGetEmployees';
 import {useGetDepartmentPositions} from '../../../hooks/useQuery/useGetDepartmentPositions';
-import type { Department, DepartmentPosition } from '../../../types/dashboard/department';
+import type { Department } from '../../../types/dashboard/department';
 import { useCreateDepartmentPositions } from '../../../hooks/useMutation/useCreateDepartmentPositions';
 import { useUpdateDepartment } from '../../../hooks/useMutation/useUpdateDepartment';
+import {useDeleteDepartment} from '../../../hooks/useMutation/useDeleteDepartment';
 
 const editSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
@@ -29,7 +29,16 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
       // Optionally, you can add any additional logic after successfully creating positions
     },
   });
-  const { mutateAsync: updateDepartment } = useUpdateDepartment(department?.id ?? '');
+  const { mutateAsync: updateDepartment } = useUpdateDepartment(department?.id ?? '', {
+    onSuccess: () => {
+     onClose();
+    },
+  });
+  const { mutateAsync: deleteDepartmentMutate } = useDeleteDepartment(department?.id ?? '', {
+    onSuccess: () => {
+      onClose();
+    },
+  });
 
   const [showAddPosition, setShowAddPosition] = useState(false);
   const [newPositionTitle, setNewPositionTitle] = useState('');

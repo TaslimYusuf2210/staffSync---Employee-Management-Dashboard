@@ -38,3 +38,8 @@ export const deleteDepartment = (id: string) =>
   request<any>(`/departments/${id}`, {
     method: 'DELETE',
   });
+
+export const deleteDepartmentPosition = (departmentId: string, positionId: string) =>
+  request<any>(`/departments/${departmentId}/positions/${positionId}`, {
+    method: 'DELETE',
+  });
