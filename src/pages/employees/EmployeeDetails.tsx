@@ -118,26 +118,84 @@ export default function EmployeeDetails() {
       </Link>
 
       {/* Profile summary header */}
-      <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <Avatar firstName={employee.firstName} lastName={employee.lastName} photoUrl={employee.photoUrl} size="lg" />
-          <div>
-            <h1 className="text-2xl font-black text-neutral-900">{employee.firstName} {employee.lastName}</h1>
-            <p className="text-sm font-semibold text-neutral-600 mt-0.5">{employee.position} &bull; {employee.department}</p>
-            <span className="text-[10px] text-neutral-400 font-bold tracking-tight block mt-1 uppercase">ID: {employee.id}</span>
+      <div className="bg-white border border-neutral-200 rounded-3xl p-6 shadow-sm">
+        <div className="flex flex-col xl:flex-row xl:items-stretch gap-6">
+          <div className="flex-none h-60 sm:h-72 w-full sm:w-52 xl:w-60 rounded-4xl overflow-hidden border border-neutral-200 bg-neutral-950/5">
+            {employee.photoUrl ? (
+              <img
+                src={employee.photoUrl}
+                alt={`${employee.firstName} ${employee.lastName}`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-4xl font-black text-neutral-700">
+                {`${employee.firstName[0] ?? ''}${employee.lastName[0] ?? ''}`}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col justify-between">
+            <div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-indigo-600 uppercase tracking-[0.32em]">Employee profile</p>
+                  <h1 className="text-3xl font-black text-neutral-950 mt-2">{employee.firstName} {employee.lastName}</h1>
+                  <div className="mt-2 flex items-center gap-3">
+                    <span className="text-sm font-semibold text-neutral-950">{employee.position}</span>
+                    <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-400">{employee.department}</span>
+                  </div>
+                </div>
+                <StatusBadge status={employee.status} />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-neutral-100 text-neutral-700 px-3 py-1 text-xs font-semibold">ID: {employee.id}</span>
+                <span className="rounded-full bg-neutral-100 text-neutral-700 px-3 py-1 text-xs font-semibold">Joined {employee.hireDate}</span>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                title="Delete employee"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <StatusBadge status={employee.status} />
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors cursor-pointer"
-            title="Delete employee"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Email</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.email}</p>
+          </div>
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Phone</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.phoneNumber}</p>
+          </div>
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Employment type</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.employmentType}</p>
+          </div>
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Manager</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.reportingManager || 'Not assigned'}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="rounded-3xl border border-neutral-100 p-5 bg-neutral-50">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Address</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.address || 'No address provided'}</p>
+          </div>
+          <div className="rounded-3xl border border-neutral-100 p-5 bg-neutral-50">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Emergency contact</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.emergencyContact || 'Not available'}</p>
+          </div>
         </div>
       </div>
 
