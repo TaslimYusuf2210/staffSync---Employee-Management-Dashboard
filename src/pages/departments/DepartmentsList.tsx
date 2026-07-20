@@ -51,13 +51,9 @@ export default function DepartmentsList() {
       <EditDepartmentDialog department={editingDep} onClose={() => setEditingDep(null)} />
       {deletingDep && (
         <DeleteDepartmentDialog
+          departmentId={deletingDep.id}
           departmentName={deletingDep.name}
           memberCount={deletingDep.employeeCount}
-          isDeleting={false}
-          onConfirm={() => {
-            deleteDepartment(deletingDep.id);
-            setDeletingDep(null);
-          }}
           onClose={() => setDeletingDep(null)}
         />
       )}

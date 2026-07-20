@@ -1,21 +1,28 @@
 import { Hourglass } from 'ldrs/react';
 import 'ldrs/react/Hourglass.css';
+import { useDeleteDepartment } from '@/hooks/useMutation/useDeleteDepartment';
 
 interface DeleteDepartmentDialogProps {
+  departmentId: string;
   departmentName: string;
   memberCount: number;
-  isDeleting: boolean;
-  onConfirm: () => void;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 export function DeleteDepartmentDialog({
+  departmentId,
   departmentName,
   memberCount,
-  isDeleting,
-  onConfirm,
   onClose,
+  onSuccess,
 }: DeleteDepartmentDialogProps) {
+  const { mutate: deleteDepartmentMutation, isPending: isDeleting } = useDeleteDepartment(departmentId, {
+    onSuccess: () => {
+      onSuccess?.();
+      onClose();
+    },
+  });
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40"
@@ -68,7 +75,7 @@ export function DeleteDepartmentDialog({
             </button>
             <button
               type="button"
-              onClick={onConfirm}
+              onClick={() => deleteDepartmentMutation()}
               disabled={isDeleting}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
             >

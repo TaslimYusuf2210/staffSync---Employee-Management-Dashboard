@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGetDepartmentById } from "@/hooks/useQuery/useGetDepartmentById";
-import { useDeleteDepartment } from "@/hooks/useMutation/useDeleteDepartment";
 import { DeleteDepartmentDialog } from "./components/DeleteDepartmentDialog";
 
 export default function DepartmentDetails() {
@@ -9,11 +8,9 @@ export default function DepartmentDetails() {
   const navigate = useNavigate();
   const { data: departmentData } = useGetDepartmentById(id);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const { mutate: deleteDepartmentMutation, isPending: isDeleting } = useDeleteDepartment(id ?? '', {
-    onSuccess: () => {
-      navigate('/dashboard/departments');
-    },
-  });
+  const handleDeletionSuccess = () => {
+    navigate('/dashboard/departments');
+  };
   console.log('[DepartmentDetails] departmentData:', departmentData);
   const department = departmentData?.data?.department;
   const members = departmentData?.data?.members || [];
@@ -207,10 +204,10 @@ export default function DepartmentDetails() {
 
       {showDeleteDialog && (
         <DeleteDepartmentDialog
+          departmentId={department.id}
           departmentName={department.name}
           memberCount={members.length}
-          isDeleting={isDeleting}
-          onConfirm={() => deleteDepartmentMutation()}
+          onSuccess={handleDeletionSuccess}
           onClose={() => setShowDeleteDialog(false)}
         />
       )}
