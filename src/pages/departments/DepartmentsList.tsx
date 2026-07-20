@@ -5,6 +5,7 @@ import type { Department } from "../../types/dashboard/department";
 import { useGetDepartments } from "../../hooks/useQuery/useGetDepartments";
 import { AddDepartmentDialog } from "./components/AddDepartmentDialog";
 import { EditDepartmentDialog } from "./components/EditDepartmentDialog";
+import { DeleteDepartmentDialog } from "./components/DeleteDepartmentDialog";
 import { DropdownMenu } from "../../components/ui/dropdown-menu";
 import { EmptyState } from "../../components/EmptyState";
 
@@ -17,12 +18,7 @@ export default function DepartmentsList() {
   const { deleteDepartment } = useApp();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingDep, setEditingDep] = useState<Department | null>(null);
-
-  const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete the ${name} department?`)) {
-      deleteDepartment(id);
-    }
-  };
+  const [deletingDep, setDeletingDep] = useState<Department | null>(null);
   return (
     <div className="space-y-6">
       {" "}
@@ -53,6 +49,18 @@ export default function DepartmentsList() {
 
       <AddDepartmentDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} />
       <EditDepartmentDialog department={editingDep} onClose={() => setEditingDep(null)} />
+      {deletingDep && (
+        <DeleteDepartmentDialog
+          departmentName={deletingDep.name}
+          memberCount={deletingDep.employeeCount}
+          isDeleting={false}
+          onConfirm={() => {
+            deleteDepartment(deletingDep.id);
+            setDeletingDep(null);
+          }}
+          onClose={() => setDeletingDep(null)}
+        />
+      )}
 
       {/* DEPARTMENTS TABLE */}{" "}
       <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm">
@@ -151,7 +159,7 @@ export default function DepartmentsList() {
                             {
                               label: 'Delete',
                               icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
-                              onClick: () => handleDelete(dep.id, dep.name),
+                              onClick: () => setDeletingDep(dep),
                               danger: true,
                             },
                           ]}

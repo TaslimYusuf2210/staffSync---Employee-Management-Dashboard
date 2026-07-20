@@ -1,9 +1,19 @@
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGetDepartmentById } from "@/hooks/useQuery/useGetDepartmentById";
+import { useDeleteDepartment } from "@/hooks/useMutation/useDeleteDepartment";
+import { DeleteDepartmentDialog } from "./components/DeleteDepartmentDialog";
 
 export default function DepartmentDetails() {
   const { id } = useParams<{ id: string | undefined }>();
+  const navigate = useNavigate();
   const { data: departmentData } = useGetDepartmentById(id);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { mutate: deleteDepartmentMutation, isPending: isDeleting } = useDeleteDepartment(id ?? '', {
+    onSuccess: () => {
+      navigate('/dashboard/departments');
+    },
+  });
   console.log('[DepartmentDetails] departmentData:', departmentData);
   const department = departmentData?.data?.department;
   const members = departmentData?.data?.members || [];
@@ -64,26 +74,37 @@ export default function DepartmentDetails() {
             {department.description}
           </p>{" "}
         </div>{" "}
-        <div className="grid grid-cols-2 gap-4 shrink-0">
-          {" "}
-          <div className="bg-neutral-50 -[#ccd5ae] border border-neutral-100 -[#ccd5ae] p-4 rounded-xl text-center">
+        <div className="flex items-start gap-3 shrink-0">
+          <div className="grid grid-cols-2 gap-4">
             {" "}
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-              Head
-            </span>{" "}
-            <p className="font-extrabold text-neutral-950 text-sm mt-1">
-              {department.head}
-            </p>{" "}
-          </div>{" "}
-          <div className="bg-neutral-50 -[#ccd5ae] border border-neutral-100 -[#ccd5ae] p-4 rounded-xl text-center">
-            {" "}
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-              Members
-            </span>{" "}
-            <p className="font-black text-neutral-950 text-xl mt-1">
-              {members.length}
-            </p>{" "}
-          </div>{" "}
+            <div className="bg-neutral-50 -[#ccd5ae] border border-neutral-100 -[#ccd5ae] p-4 rounded-xl text-center">
+              {" "}
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                Head
+              </span>{" "}
+              <p className="font-extrabold text-neutral-950 text-sm mt-1">
+                {department.head}
+              </p>{" "}
+            </div>{" "}
+            <div className="bg-neutral-50 -[#ccd5ae] border border-neutral-100 -[#ccd5ae] p-4 rounded-xl text-center">
+              {" "}
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                Members
+              </span>{" "}
+              <p className="font-black text-neutral-950 text-xl mt-1">
+                {members.length}
+              </p>{" "}
+            </div>{" "}
+          </div>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="p-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors cursor-pointer shrink-0"
+            title="Delete department"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
         </div>{" "}
       </div>{" "}
       {/* Employees in this Department */}{" "}
@@ -183,6 +204,16 @@ export default function DepartmentDetails() {
           </div>
         )}{" "}
       </div>{" "}
+
+      {showDeleteDialog && (
+        <DeleteDepartmentDialog
+          departmentName={department.name}
+          memberCount={members.length}
+          isDeleting={isDeleting}
+          onConfirm={() => deleteDepartmentMutation()}
+          onClose={() => setShowDeleteDialog(false)}
+        />
+      )}
     </div>
   );
 }
