@@ -42,6 +42,7 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   const [newPositionDescription, setNewPositionDescription] = useState('');
   const [headSearch, setHeadSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [validatedHead, setValidatedHead] = useState('');
 
   const { data: employeesData, isLoading: isSearching } = useGetEmployees(
     headSearch.length > 0 ? { search: headSearch, limit: 10 } : undefined
@@ -55,24 +56,35 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     handleSubmit,
     reset,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<EditFormValues>({
     resolver: zodResolver(editSchema),
     defaultValues: { name: '', description: '', head: '' },
   });
 
-  const selectEmployee = (name: string) => {
-    setValue('head', name);
-    setHeadSearch('');
-    setShowDropdown(false);
-  };
+  useEffect(() => {
+    if (department) {
+      setHeadSearch('');
+      setShowDropdown(false);
+      setValidatedHead('');
+    }
+  }, [department]);
 
   useEffect(() => {
     if (department) {
       initialValues.current = { name: department.name, description: department.description, head: department.head };
       reset(initialValues.current);
+      setValidatedHead(department.head);
     }
   }, [department, reset]);
+
+  const selectEmployee = (name: string) => {
+    setValidatedHead(name);
+    setValue('head', name);
+    setHeadSearch('');
+    setShowDropdown(false);
+  };
 
   const handleAddPosition = async () => {
     if (!newPositionTitle.trim()) {
@@ -95,6 +107,11 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   const onSubmit = async (data: EditFormValues) => {
     if (!department) return;
 
+    if (data.head !== validatedHead) {
+      setError('head', { message: 'Please select a valid employee from the list' });
+      return;
+    }
+
     const { name, description, head } = data;
     const { name: origName, description: origDesc, head: origHead } = initialValues.current;
     const hasChanges = name !== origName || description !== origDesc || head !== origHead;
@@ -113,6 +130,7 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     setNewPositionDescription('');
     setHeadSearch('');
     setShowDropdown(false);
+    setValidatedHead('');
     setConfirmDeletePosition(null);
     onClose();
   };
@@ -131,14 +149,22 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
           </div>
           <div>
             <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Department Head / Manager</label>
-            <div className="relative">
+            <div
+              className="relative"
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setShowDropdown(false);
+                }
+              }}
+            >
               <input
                 placeholder="Search employee..."
                 type="text"
                 {...register('head', {
                   onChange: (e) => {
+                    setValidatedHead('');
                     setHeadSearch(e.target.value);
-                    setShowDropdown(true);
+                    if (e.target.value) setShowDropdown(true);
                   },
                 })}
                 onFocus={() => headSearch && setShowDropdown(true)}
@@ -157,7 +183,7 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
                       <button
                         key={emp.id}
                         type="button"
-                        onClick={() => selectEmployee(`${emp.firstName} ${emp.lastName}`)}
+                        onMouseDown={() => selectEmployee(`${emp.firstName} ${emp.lastName}`)}
                         className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
                       >
                         <span className="font-bold text-neutral-900">{emp.firstName} {emp.lastName}</span>
