@@ -126,7 +126,7 @@ export default function DepartmentsList() {
                         </p>
                       </td>
                       <td className="p-4 text-neutral-700 font-bold">
-                        {dep.head}
+                        {dep.head || <span className="text-neutral-400 font-medium">Not assigned</span>}
                       </td>
                       <td className="p-4 font-black text-neutral-900">
                         {dep.employeeCount} members

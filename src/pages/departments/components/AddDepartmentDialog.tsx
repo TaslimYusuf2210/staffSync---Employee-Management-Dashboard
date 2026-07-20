@@ -69,7 +69,7 @@ export function AddDepartmentDialog({ open, onClose }: AddDepartmentDialogProps)
     addDepartmentMutation({
       name: data.name,
       description: data.description,
-      head: data.head,
+      head: data.head || undefined,
     });
   };
 

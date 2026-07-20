@@ -15,7 +15,7 @@ import { useDeleteDepartmentPosition } from '../../../hooks/useMutation/useDelet
 const editSchema = z.object({
   name: z.string().min(2, { message: 'Department name must be at least 2 characters' }),
   description: z.string().min(1, { message: 'Description is required' }),
-  head: z.string().min(1, { message: 'Department head is required' }),
+  head: z.string().optional(),
 });
 
 type EditFormValues = z.infer<typeof editSchema>;
@@ -107,8 +107,8 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
   const onSubmit = async (data: EditFormValues) => {
     if (!department) return;
 
-    if (data.head !== validatedHead) {
-      setError('head', { message: 'Please select a valid employee from the list' });
+    if (data.head && data.head !== validatedHead) {
+      setError('head', { message: 'Please select a valid employee from the list, or leave it empty for no department head' });
       return;
     }
 
@@ -117,7 +117,7 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     const hasChanges = name !== origName || description !== origDesc || head !== origHead;
 
     if (hasChanges) {
-      await updateDepartment({ name, description, head });
+      await updateDepartment({ name, description, head: head || undefined });
     } else {
       onClose();
     }
