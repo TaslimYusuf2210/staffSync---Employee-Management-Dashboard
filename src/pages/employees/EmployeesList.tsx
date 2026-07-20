@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useApp } from '../../context/AppContext';
 import { PageHeader } from '../../components/PageHeader';
 import { Avatar } from '../../components/ui/avatar';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -8,6 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { Pagination } from '../../components/Pagination';
 import { EmptyState } from '../../components/EmptyState';
 import { AddEmployeeDialog } from './components/AddEmployeeDialog';
+import { DeleteEmployeeDialog } from './components/DeleteEmployeeDialog';
 import { useGetEmployees } from '@/hooks/useQuery/useGetEmployees';
 import { useGetDepartments } from '@/hooks/useQuery/useGetDepartments';
 import { DropdownMenu } from '../../components/ui/dropdown-menu';
@@ -16,6 +16,7 @@ export default function EmployeesList() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
   const [sortBy, setSortBy] = useState<'name' | 'dept' | 'joined'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,13 +26,16 @@ export default function EmployeesList() {
     limit: 10,
     search: searchTerm || undefined,
     department: selectedDept === 'All' ? undefined : selectedDept,
+    status: selectedStatus === 'All' ? undefined : selectedStatus as 'Active' | 'Inactive' | 'Probation' | 'Resigned' | 'Terminated' | 'OnLeave',
     sortBy,
     sortOrder,
   });
   const {data: departmentsData} = useGetDepartments();
   console.log('[EmployeesList] employeesData:', employeesData);
   console.log('[EmployeesList] departmentsData:', departmentsData);
-  const { deleteEmployee } = useApp();  const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [deletingEmp, setDeletingEmp] = useState<{ id: string; name: string } | null>(null);
+
   const toggleSort = (field: 'name' | 'dept' | 'joined') => {
     if (sortBy === field) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     else { setSortBy(field); setSortOrder('asc'); }
@@ -40,10 +44,6 @@ export default function EmployeesList() {
 
   const sortIndicator = (field: 'name' | 'dept' | 'joined') =>
     sortBy === field ? (sortOrder === 'asc' ? ' ↑' : ' ↓') : '';
-
-  const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete employee ${name}?`)) deleteEmployee(id);
-  };
 
   const peopleIcon = (
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-full h-full">
@@ -54,6 +54,13 @@ export default function EmployeesList() {
   return (
     <>
       <AddEmployeeDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} />
+      {deletingEmp && (
+        <DeleteEmployeeDialog
+          employeeId={deletingEmp.id}
+          employeeName={deletingEmp.name}
+          onClose={() => setDeletingEmp(null)}
+        />
+      )}
       <div className="space-y-6">
       <PageHeader
         title="Employees"
@@ -92,7 +99,7 @@ export default function EmployeesList() {
           </svg>
         </div>
         {/* Dept Selector */}
-        <div className="w-full md:w-56">
+        <div className="w-full md:w-48">
           <select
             value={selectedDept}
             onChange={(e) => {
@@ -105,6 +112,25 @@ export default function EmployeesList() {
             {departmentsData?.data?.departments?.map((d) => (
               <option key={d.id} value={d.name}>{d.name}</option>
             ))}
+          </select>
+        </div>
+        {/* Status Selector */}
+        <div className="w-full md:w-40">
+          <select
+            value={selectedStatus}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full py-2.5 px-3 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-neutral-900"
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Probation">Probation</option>
+            <option value="Resigned">Resigned</option>
+            <option value="Terminated">Terminated</option>
+            <option value="OnLeave">On Leave</option>
           </select>
         </div>
       </div>
@@ -134,7 +160,15 @@ export default function EmployeesList() {
             <p className="text-neutral-400 text-sm">Failed to load employees data</p>
           </div>
         ) : employeesData?.data?.employees?.length === 0 ? (
-          <EmptyState icon={peopleIcon} title="No employees found" description="Try adjusting your search criteria or register a new team member." />
+          <EmptyState
+            icon={peopleIcon}
+            title="No employees found"
+            description={
+              searchTerm || selectedDept !== 'All' || selectedStatus !== 'All'
+                ? 'No employees match your current filters. Try adjusting your search criteria.'
+                : 'Register a new team member to get started.'
+            }
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -187,7 +221,7 @@ export default function EmployeesList() {
                           {
                             label: 'Delete',
                             icon: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
-                            onClick: () => handleDelete(emp.id, `${emp.firstName} ${emp.lastName}`),
+                            onClick: () => setDeletingEmp({ id: emp.id, name: `${emp.firstName} ${emp.lastName}` }),
                             danger: true,
                           },
                         ]}

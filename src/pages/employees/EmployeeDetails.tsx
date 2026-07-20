@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import type { Employee, Education, Document, Note, TabType } from '../../types/dashboard/employee';
 import { Avatar } from '../../components/ui/avatar';
 import { StatusBadge } from '../../components/StatusBadge';
+import { DeleteEmployeeDialog } from './components/DeleteEmployeeDialog';
 import { OverviewTab } from './components/OverviewTab';
 import { PersonalTab } from './components/PersonalTab';
 import { EmploymentTab } from './components/EmploymentTab';
@@ -27,9 +28,11 @@ const TABS: { key: TabType; label: string }[] = [
 
 export default function EmployeeDetails() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { departments, updateEmployee } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: employee } = useGetEmployeeById(id);
   console.log('[EmployeeDetails] employee:', employee);
   console.log('[EmployeeDetails] id from params:', id);
@@ -103,6 +106,17 @@ export default function EmployeeDetails() {
   return (
     <div className="space-y-6">
 
+      {/* Back link */}
+      <Link
+        to="/dashboard/employees"
+        className="text-xs font-bold text-neutral-500 hover:text-neutral-900 transition-colors flex items-center gap-1"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Employees
+      </Link>
+
       {/* Profile summary header */}
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
@@ -113,7 +127,18 @@ export default function EmployeeDetails() {
             <span className="text-[10px] text-neutral-400 font-bold tracking-tight block mt-1 uppercase">ID: {employee.id}</span>
           </div>
         </div>
-        <StatusBadge status={employee.status} />
+        <div className="flex items-center gap-3 shrink-0">
+          <StatusBadge status={employee.status} />
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="p-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors cursor-pointer"
+            title="Delete employee"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Tabs navigation */}
@@ -142,6 +167,15 @@ export default function EmployeeDetails() {
         {activeTab === 'documents' && <DocumentsSection documents={employee.documents} onAdd={handleAddDoc} onDelete={handleDeleteDoc} />}
         {activeTab === 'notes' && <NotesSection notes={employee.notes} onAdd={handleAddNote} onDelete={handleDeleteNote} />}
       </div>
+
+      {showDeleteDialog && (
+        <DeleteEmployeeDialog
+          employeeId={employee.id}
+          employeeName={`${employee.firstName} ${employee.lastName}`}
+          onSuccess={() => navigate('/dashboard/employees')}
+          onClose={() => setShowDeleteDialog(false)}
+        />
+      )}
     </div>
   );
 }

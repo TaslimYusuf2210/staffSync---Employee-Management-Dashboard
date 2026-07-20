@@ -17,3 +17,8 @@ export const createEmployee = (payload: CreateEmployeePayload) =>
     method: 'POST',
     data: payload,
   });
+
+export const deleteEmployee = (id: string) =>
+  request<any>(`/employees/${id}`, {
+    method: 'DELETE',
+  });
