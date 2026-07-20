@@ -10,7 +10,6 @@ import CreateAccount from "./pages/auth/CreateAccount";
 import Dashboard from "./pages/dashboard/Dashboard";
 import DepartmentDetails from "./pages/departments/DepartmentDetails";
 import DepartmentsList from "./pages/departments/DepartmentsList";
-import EmployeeCreate from "./pages/employees/EmployeeCreate";
 import EmployeeDetails from "./pages/employees/EmployeeDetails";
 import EmployeesList from "./pages/employees/EmployeesList";
 import Layout from "./components/Layout";
@@ -37,7 +36,6 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="employees" element={<EmployeesList />} />
-            <Route path="employees/create" element={<EmployeeCreate />} />
             <Route path="employees/:id" element={<EmployeeDetails />} />
             <Route path="departments" element={<DepartmentsList />} />
             <Route path="departments/:id" element={<DepartmentDetails />} />

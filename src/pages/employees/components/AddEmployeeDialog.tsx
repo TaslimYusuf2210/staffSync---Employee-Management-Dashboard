@@ -5,20 +5,31 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog } from '../../../components/ui/dialog';
 import { useGetDepartments } from '../../../hooks/useQuery/useGetDepartments';
 import { useCreateEmployee } from '../../../hooks/useMutation/useCreateEmployee';
+import { useGetDepartmentPositions } from '../../../hooks/useQuery/useGetDepartmentPositions';
 import { Hourglass } from 'ldrs/react';
 import 'ldrs/react/Hourglass.css';
 
-const employeeSchema = z.object({
+const baseEmployeeSchema = z.object({
   firstName: z.string().min(2, { message: 'First name is required (min 2 characters)' }),
   lastName: z.string().min(2, { message: 'Last name is required (min 2 characters)' }),
   email: z.string().email({ message: 'A valid email address is required' }),
   phoneNumber: z.string().min(6, { message: 'Phone number is required' }),
   gender: z.string().min(1, { message: 'Gender is required' }),
-  department: z.string().min(1, { message: 'Department is required' }),
-  position: z.string().min(2, { message: 'Position is required' }),
+  department: z.string().optional(),
+  position: z.string().optional(),
   employmentType: z.enum(['Full-time', 'Part-time', 'Contract', 'Intern', 'Remote']),
   hireDate: z.string().optional(),
   status: z.enum(['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated', 'OnLeave']).optional(),
+});
+
+const employeeSchema = baseEmployeeSchema.superRefine((data, ctx) => {
+  if (data.department && (!data.position || data.position.length < 2)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['position'],
+      message: 'Position is required when a department is selected',
+    });
+  }
 });
 
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
@@ -38,6 +49,8 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { data: departmentsData } = useGetDepartments();
   const departments = departmentsData?.data?.departments ?? [];
+  console.log('[AddEmployeeDialog] departments:', departments);
+  departments.forEach((d) => console.log(`  - id: ${d.id}, name: "${d.name}"`));
 
   const {
     register,
@@ -45,6 +58,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
     watch,
     trigger,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
@@ -54,13 +68,18 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
       email: '',
       phoneNumber: '',
       gender: 'Male',
-      department: departments[0]?.name || '',
+      department: '',
       position: '',
       employmentType: 'Full-time',
       hireDate: new Date().toISOString().split('T')[0],
       status: 'Active',
     },
   });
+
+  const selectedDepartmentName = watch('department');
+  const selectedDepartmentId = departments.find((d) => d.name === selectedDepartmentName)?.id ?? '';
+  const { data: positionsData } = useGetDepartmentPositions(selectedDepartmentId || '');
+  const positionsList = positionsData?.data?.positions ?? [];
 
   const stepFields: (keyof EmployeeFormValues)[][] = [
     ['firstName', 'lastName', 'email', 'phoneNumber', 'gender'],
@@ -96,9 +115,20 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
     onClose();
   };
 
-  const onSubmit = (data: EmployeeFormValues) => {
+  const onSubmit = async (data: EmployeeFormValues) => {
     if (step < 2) return;
-    createEmployee(data);
+    await createEmployee({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      gender: data.gender,
+      department: data.department || '',
+      position: data.position || '',
+      employmentType: data.employmentType,
+      hireDate: data.hireDate,
+      status: data.status,
+    });
   };
 
   return (
@@ -192,8 +222,11 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Department <span className="text-red-400">*</span></label>
-                <select {...register('department')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer">
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Department <span className="text-neutral-300 font-normal lowercase">(optional)</span></label>
+                <select {...register('department', {
+                    onChange: () => setValue('position', ''),
+                  })} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer">
+                  <option value="">Not assigned</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.name}>{d.name}</option>
                   ))}
@@ -201,8 +234,21 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
                 {errors.department && <p className="text-red-500 text-[10px] mt-1">{errors.department.message}</p>}
               </div>
               <div>
-                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Position / Job Title <span className="text-red-400">*</span></label>
-                <input type="text" {...register('position')} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
+                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Position / Job Title {selectedDepartmentName ? <span className="text-red-400">*</span> : <span className="text-neutral-300 font-normal lowercase">(optional)</span>}</label>
+                <select {...register('position')} disabled={!selectedDepartmentName} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae] bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                  {!selectedDepartmentName ? (
+                    <option value="">Select a department first</option>
+                  ) : positionsList.length === 0 ? (
+                    <option value="">No positions available</option>
+                  ) : (
+                    <>
+                      <option value="">Select a position</option>
+                      {positionsList.map((pos) => (
+                        <option key={pos.id} value={pos.title}>{pos.title}</option>
+                      ))}
+                    </>
+                  )}
+                </select>
                 {errors.position && <p className="text-red-500 text-[10px] mt-1">{errors.position.message}</p>}
               </div>
               <div>
@@ -266,7 +312,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
                 </div>
                 <div>
                   <span className="text-neutral-400 font-bold block">Department</span>
-                  <span className="text-neutral-900">{watch('department')}</span>
+                  <span className="text-neutral-900">{watch('department') || 'Not assigned'}</span>
                 </div>
                 <div>
                   <span className="text-neutral-400 font-bold block">Position</span>
