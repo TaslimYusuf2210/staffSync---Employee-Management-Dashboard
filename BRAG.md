@@ -243,6 +243,62 @@ Mapped the complete authentication flow: form → `useLogin` mutation → `auth.
 
 ---
 
+## 2026-07-16
+
+### Cross-Cutting Fixes & Cleanup
+
+A broad round of fixes across the app:
+
+- **`AppContext` overhaul**: Major rework of the app context provider (+49 lines) — likely related to state management improvements for the authenticated user or shared app state.
+- **Auth flow cleanup**: Removed the standalone `SuccessStep.tsx` (registration success screen), simplified `Login.tsx`, and cleaned up the auth step transitions.
+- **Dashboard updates**: Refreshed the dashboard page with additional data or layout tweaks.
+- **Department list refactor**: Restructured `DepartmentsList.tsx` (44 lines changed, 24 deletions) for better readability and maintainability.
+- **Employee pages**: Minor fixes to `EmployeeDetails.tsx` and `EmployeesList.tsx`.
+- **Reports page**: Added the reports page stub/update.
+- **API service fix**: Adjusted the Axios interceptor to handle auth edge cases (token expiry while user is still in the dashboard).
+- **Type definitions**: Added `Department` types (`src/types/dashboard/department.ts`) to support the department CRUD work ahead.
+- **Vite config**: Added config changes (likely path alias or build settings).
+
+---
+
+## 2026-07-17
+
+### Department Details — View Department Fix
+
+- Fixed `useGetDepartmentById` to unwrap the API response via TanStack Query's `select`, so `DepartmentDetails` receives the department object directly instead of the raw `ApiResponse`.
+- Built out `DepartmentDetails.tsx` with a proper department info layout (displaying department name, head, employee count, etc.).
+- Added comprehensive department types (`Department`, `DepartmentListResponse`, `SingleDepartmentResponse`) to `src/types/dashboard/department.ts`.
+
+### Edit Department Dialog — Full Implementation
+
+- Created a fully functional `EditDepartmentDialog` with form fields for department name, description, and departmental head selection.
+- Wired up the dialog to pre-populate existing department data for editing.
+- Added the `useCreateDepartmentPositions` mutation hook and `useGetDepartmentPositions` query hook to manage job positions within a department.
+- Integrated position management into the edit dialog — you can now add positions when editing a department.
+- Fixed the position creation flow to ensure positions are saved correctly with the department.
+
+---
+
+## 2026-07-18
+
+### Department Update & Delete Endpoints
+
+- **`useUpdateDepartment`**: Created the mutation hook and integrated the update department endpoint. The `EditDepartmentDialog` now successfully sends update requests.
+- **`useDeleteDepartment`**: Created the mutation hook and service for deleting a department.
+- **`useDeleteDepartmentPosition`**: Created the mutation hook to remove individual positions from a department.
+
+### Edit Department Dialog — Completion
+
+- Finished the `EditDepartmentDialog` with full position management — add and remove positions inline within the dialog.
+- Cleaned up the dialog's form state, validation, and submission flow.
+
+### Employee Create — Dialog Experimentation
+
+- Worked on transitioning the employee creation flow from a standalone page (`EmployeeCreate.tsx`) toward a dialog-based approach.
+- Made iterative fixes to the create employee dialog form (layout and logic adjustments).
+
+---
+
 ## 2026-07-20
 
 ### Department CRUD — Completed Integration
