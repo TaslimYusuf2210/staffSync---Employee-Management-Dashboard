@@ -37,7 +37,8 @@ export function NotesSection({ notes }: NotesSectionProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
         <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider">Internal Memos</h3>
-        <button onClick={() => setShowDialog(true)} className="px-3 py-1.5 bg-[#ccd5ae] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">
+        <button onClick={() => setShowDialog(true)} className="px-3 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           Add Note
         </button>
       </div>

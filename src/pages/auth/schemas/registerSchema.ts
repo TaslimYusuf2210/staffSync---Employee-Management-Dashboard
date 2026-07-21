@@ -5,7 +5,7 @@ export const registerSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   otp: z.string().length(6, { message: 'OTP must be exactly 6 digits' }).regex(/^\d{6}$/, { message: 'OTP must be a 6-digit code' }),
   phoneNumber: z.string()
-    .regex(/^\+234(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/, { message: 'Please enter a valid Nigerian phone number' }),
+    .regex(/^(?:\+234|0)(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/, { message: 'Please enter a valid Nigerian phone number' }),
   state: z.string().min(1, { message: 'Please select your state' }),
   lga: z.string().min(1, { message: 'Please select your LGA' }),
   settlement: z.string().min(1, { message: 'Please enter your settlement' }),
