@@ -19,8 +19,8 @@ type SalaryFormValues = z.infer<typeof salarySchema>;
 
 export function SalaryTab({ employee, onSave }: SalaryTabProps) {
   const [editing, setEditing] = useState(false);
-  const s = employee.salary;
-  const total = s.baseSalary + s.bonus + s.allowances;
+  const s = employee.salary ?? { baseSalary: 0, bonus: 0, allowances: 0 };
+  const total = (s.baseSalary ?? 0) + (s.bonus ?? 0) + (s.allowances ?? 0);
 
   const {
     register,
@@ -30,9 +30,9 @@ export function SalaryTab({ employee, onSave }: SalaryTabProps) {
   } = useForm<SalaryFormValues>({
     resolver: zodResolver(salarySchema),
     defaultValues: {
-      baseSalary: s.baseSalary,
-      bonus: s.bonus,
-      allowances: s.allowances,
+      baseSalary: s.baseSalary ?? 0,
+      bonus: s.bonus ?? 0,
+      allowances: s.allowances ?? 0,
     },
   });
 

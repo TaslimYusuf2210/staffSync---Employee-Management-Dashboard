@@ -1,5 +1,5 @@
 import { request } from '../api';
-import type { EmployeesResponse, SingleEmployeeResponse, EmployeeQueryParams, CreateEmployeePayload } from '../../types/dashboard/employee';
+import type { EmployeesResponse, SingleEmployeeResponse, EmployeeQueryParams, CreateEmployeePayload, Education } from '../../types/dashboard/employee';
 
 export const getEmployees = (params?: EmployeeQueryParams) =>
   request<EmployeesResponse>('/employees', {
@@ -21,4 +21,10 @@ export const createEmployee = (payload: CreateEmployeePayload) =>
 export const deleteEmployee = (id: string) =>
   request<any>(`/employees/${id}`, {
     method: 'DELETE',
+  });
+
+export const addEmployeeEducation = (id: string, payload: Omit<Education, 'id'>) =>
+  request<any>(`/employees/${id}/education`, {
+    method: 'POST',
+    data: payload,
   });

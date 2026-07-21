@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import type { Employee, Education, Document, Note, TabType } from '../../types/dashboard/employee';
-import { Avatar } from '../../components/ui/avatar';
 import { StatusBadge } from '../../components/StatusBadge';
 import { DeleteEmployeeDialog } from './components/DeleteEmployeeDialog';
-import { OverviewTab } from './components/OverviewTab';
 import { PersonalTab } from './components/PersonalTab';
 import { EmploymentTab } from './components/EmploymentTab';
 import { SalaryTab } from './components/SalaryTab';
@@ -14,9 +12,9 @@ import { EducationSection } from './components/EducationSection';
 import { DocumentsSection } from './components/DocumentsSection';
 import { NotesSection } from './components/NotesSection';
 import { useGetEmployeeById } from '../../hooks/useQuery/useGetEmployeeById';
+import { useAddEducation } from '../../hooks/useMutation/useAddEducation';
 
 const TABS: { key: TabType; label: string }[] = [
-  { key: 'overview', label: 'overview' },
   { key: 'personal', label: 'personal' },
   { key: 'employment', label: 'employment' },
   { key: 'education', label: 'education' },
@@ -31,9 +29,10 @@ export default function EmployeeDetails() {
   const navigate = useNavigate();
 
   const { departments, updateEmployee } = useApp();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('personal');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: employee } = useGetEmployeeById(id);
+  const addEducation = useAddEducation(id ?? '');
   console.log('[EmployeeDetails] employee:', employee);
   console.log('[EmployeeDetails] id from params:', id);
 
@@ -75,32 +74,30 @@ export default function EmployeeDetails() {
   };
 
   const handleAddEducation = (edu: Omit<Education, 'id'>) => {
-    updateEmployee(employee.id, {
-      education: [...employee.education, { id: `edu-${Date.now()}`, ...edu }],
-    });
+    addEducation.mutate(edu);
   };
 
   const handleDeleteEdu = (eduId: string) => {
-    updateEmployee(employee.id, { education: employee.education.filter((e) => e.id !== eduId) });
+    updateEmployee(employee.id, { education: (employee.education ?? []).filter((e) => e.id !== eduId) });
   };
 
   const handleAddDoc = (doc: { name: string; type: Document['type'] }) => {
     updateEmployee(employee.id, {
-      documents: [...employee.documents, { id: `doc-${Date.now()}`, ...doc, uploadDate: new Date().toISOString().split('T')[0] }],
+      documents: [...(employee.documents ?? []), { id: `doc-${Date.now()}`, ...doc, uploadDate: new Date().toISOString().split('T')[0] }],
     });
   };
 
   const handleDeleteDoc = (docId: string) => {
-    updateEmployee(employee.id, { documents: employee.documents.filter((d) => d.id !== docId) });
+    updateEmployee(employee.id, { documents: (employee.documents ?? []).filter((d) => d.id !== docId) });
   };
 
   const handleAddNote = (text: string) => {
     const note: Note = { id: `n-${Date.now()}`, text, createdDate: new Date().toISOString().split('T')[0] };
-    updateEmployee(employee.id, { notes: [note, ...employee.notes] });
+    updateEmployee(employee.id, { notes: [note, ...(employee.notes ?? [])] });
   };
 
   const handleDeleteNote = (noteId: string) => {
-    updateEmployee(employee.id, { notes: employee.notes.filter((n) => n.id !== noteId) });
+    updateEmployee(employee.id, { notes: (employee.notes ?? []).filter((n) => n.id !== noteId) });
   };
 
   return (
@@ -168,7 +165,7 @@ export default function EmployeeDetails() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
           <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Email</p>
             <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.email}</p>
@@ -180,6 +177,10 @@ export default function EmployeeDetails() {
           <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Employment type</p>
             <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.employmentType}</p>
+          </div>
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Hire date</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.hireDate}</p>
           </div>
           <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Manager</p>
@@ -216,7 +217,6 @@ export default function EmployeeDetails() {
 
       {/* Tabs content */}
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 shadow-sm">
-        {activeTab === 'overview' && <OverviewTab employee={employee} />}
         {activeTab === 'personal' && <PersonalTab employee={employee} onSave={handleSavePersonal} />}
         {activeTab === 'employment' && <EmploymentTab employee={employee} departments={departments} onSave={handleSaveEmployment} />}
         {activeTab === 'education' && <EducationSection education={employee.education} onAdd={handleAddEducation} onDelete={handleDeleteEdu} />}

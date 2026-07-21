@@ -103,7 +103,6 @@ export interface SalaryTabProps {
 }
 
 export type TabType =
-  | 'overview'
   | 'personal'
   | 'employment'
   | 'education'

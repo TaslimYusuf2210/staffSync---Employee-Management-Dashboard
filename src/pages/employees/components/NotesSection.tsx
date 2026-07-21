@@ -16,6 +16,7 @@ const noteSchema = z.object({
 type NoteFormValues = z.infer<typeof noteSchema>;
 
 export function NotesSection({ notes, onAdd, onDelete }: NotesSectionProps) {
+  const notesList = notes ?? [];
   const {
     register,
     handleSubmit,
@@ -44,11 +45,11 @@ export function NotesSection({ notes, onAdd, onDelete }: NotesSectionProps) {
         </div>
       </form>
 
-      {notes.length === 0 ? (
+      {notesList.length === 0 ? (
         <div className="text-center text-neutral-400 text-xs py-6">No notes recorded.</div>
       ) : (
         <div className="space-y-4">
-          {notes.map((note) => (
+          {notesList.map((note) => (
             <div key={note.id} className="p-4 border border-neutral-200 rounded-2xl flex items-start justify-between">
               <div>
                 <p className="text-sm text-neutral-800">{note.text}</p>

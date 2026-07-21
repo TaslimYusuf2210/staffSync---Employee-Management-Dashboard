@@ -19,7 +19,7 @@ type BankFormValues = z.infer<typeof bankSchema>;
 
 export function BankTab({ employee, onSave }: BankTabProps) {
   const [editing, setEditing] = useState(false);
-  const b = employee.bankAccount;
+  const b = employee.bankAccount ?? { bankName: '', accountName: '', accountNumber: '' };
 
   const {
     register,

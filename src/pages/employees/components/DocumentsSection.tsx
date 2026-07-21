@@ -9,6 +9,7 @@ interface DocumentsSectionProps {
 
 export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectionProps) {
   const [form, setForm] = useState({ name: '', type: 'Resume' as Document['type'] });
+  const documentsList = documents ?? [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +39,11 @@ export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectio
         <button type="submit" className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 rounded-xl text-xs font-bold transition-all shrink-0 w-full sm:w-auto cursor-pointer">Upload Mock File</button>
       </form>
 
-      {documents.length === 0 ? (
+      {documentsList.length === 0 ? (
         <div className="text-center text-neutral-400 text-xs py-6">No documents uploaded.</div>
       ) : (
         <div className="divide-y divide-neutral-100">
-          {documents.map((doc) => (
+          {documentsList.map((doc) => (
             <div key={doc.id} className="py-3 flex items-center justify-between text-xs">
               <div>
                 <h5 className="font-bold text-neutral-900">{doc.name}</h5>
