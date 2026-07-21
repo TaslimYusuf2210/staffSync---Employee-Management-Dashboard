@@ -242,3 +242,27 @@ Mapped the complete authentication flow: form → `useLogin` mutation → `auth.
 - Fixed `useGetEmployeeById` hook to unwrap the API response via TanStack Query's `select`, so components receive `Employee | undefined` directly instead of the raw `ApiResponse`.
 
 ---
+
+## 2026-07-20
+
+### Department CRUD — Completed Integration
+
+Wrapped up the full department management flow with several improvements:
+
+- **Department head field edge case fix** (`AddDepartmentDialog` / `EditDepartmentDialog`): Fixed the `departmental head` dropdown field edge cases — handled scenarios where the head field needed special logic for pre-selection, empty state, and form reset behavior.
+- **Reusable `DeleteDepartmentDialog`**: Extracted the delete confirmation into its own reusable dialog component used by both `DepartmentDetails` and `DepartmentsList`. This eliminated duplicated confirmation logic and gave a consistent UX regardless of where the delete was triggered.
+- **Edge case handling for delete flow**: Integrated delete to handle both scenarios — departments with employees assigned (block/protect) and empty departments (allow deletion). The dialog dynamically adjusts messaging based on the department state.
+- **Final CRUD polish**: Cleaned up the remaining integration details across the department pages, ensuring all CRUD operations (create, read, update, delete) were fully wired end-to-end.
+
+### Employee Management — Create & Delete Flows
+
+- **Switched from standalone page to dialog**: Removed the separate `EmployeeCreate.tsx` page (355 lines) and migrated to an `AddEmployeeDialog` component. This keeps the employee creation experience consistent with the department pattern and avoids navigating away from the employee list.
+- **Create employee logic fix**: After the architectural change from a dedicated page to a dialog, fixed the form submission logic so create employee works correctly in the new dialog context.
+- **`DeleteEmployeeDialog`**: Created a dedicated delete employee confirmation dialog component with proper loading states and error handling.
+- **Employee route updates**: Updated `EmployeeDetails` to include the delete button + dialog integration, added the `useDeleteEmployee` mutation hook, wired up the delete service in `employee.ts`, and refreshed `EmployeesList` to support the new dialog patterns.
+
+### Employee Details Layout
+
+- Fixed layout issues in `EmployeeDetails.tsx` (76 insertions, 18 deletions) — improved the arrangement of employee info sections for a cleaner, more structured display.
+
+---
