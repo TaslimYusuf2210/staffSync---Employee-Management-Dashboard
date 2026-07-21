@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Dialog } from '../../../components/ui/dialog';
 import type { Employee, Document } from '../../../types/dashboard/employee';
 
 interface DocumentsSectionProps {
@@ -8,6 +9,7 @@ interface DocumentsSectionProps {
 }
 
 export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectionProps) {
+  const [showDialog, setShowDialog] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'Resume' as Document['type'] });
   const documentsList = documents ?? [];
 
@@ -16,28 +18,42 @@ export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectio
     if (!form.name) return;
     onAdd(form);
     setForm({ name: '', type: 'Resume' });
+    setShowDialog(false);
   };
 
   return (
     <div className="space-y-6">
-      <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Documents Roster</h3>
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider">Documents Roster</h3>
+        <button onClick={() => setShowDialog(true)} className="px-3 py-1.5 bg-[#ccd5ae] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">
+          Add Document
+        </button>
+      </div>
 
-      <form onSubmit={handleSubmit} className="bg-neutral-50 border border-neutral-200 p-4 rounded-xl flex flex-col sm:flex-row gap-3 items-end">
-        <div className="flex-1 w-full">
-          <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Document File Name</label>
-          <input required type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Contract_Signed.pdf" className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs" />
-        </div>
-        <div className="w-full sm:w-48">
-          <label className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Document Type</label>
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as Document['type'] })} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs">
-            <option value="Resume">Resume</option>
-            <option value="Employment Letter">Employment Letter</option>
-            <option value="Certificates">Certificates</option>
-            <option value="Other Documents">Other Documents</option>
-          </select>
-        </div>
-        <button type="submit" className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 rounded-xl text-xs font-bold transition-all shrink-0 w-full sm:w-auto cursor-pointer">Upload Mock File</button>
-      </form>
+      <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Upload Document</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Document File Name</label>
+              <input required type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Contract_Signed.pdf" className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Document Type</label>
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as Document['type'] })} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]">
+                <option value="Resume">Resume</option>
+                <option value="Employment Letter">Employment Letter</option>
+                <option value="Certificates">Certificates</option>
+                <option value="Other Documents">Other Documents</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end pt-2">
+            <button type="button" onClick={() => setShowDialog(false)} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 rounded-xl text-xs font-bold transition-all cursor-pointer">Upload</button>
+          </div>
+        </form>
+      </Dialog>
 
       {documentsList.length === 0 ? (
         <div className="text-center text-neutral-400 text-xs py-6">No documents uploaded.</div>
