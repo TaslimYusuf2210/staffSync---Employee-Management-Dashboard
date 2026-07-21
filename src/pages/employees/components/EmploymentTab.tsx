@@ -6,12 +6,14 @@ import { Hourglass } from 'ldrs/react';
 import 'ldrs/react/Hourglass.css';
 import { Dialog } from '../../../components/ui/dialog';
 import type { Employee } from '../../../types/dashboard/employee';
-import type { Department } from '../../../types/dashboard/department';
 import { useUpdateEmployee } from '@/hooks/useMutation/useUpdateEmployee';
+import { useGetDepartments } from '@/hooks/useQuery/useGetDepartments';
+import { useGetDepartmentPositions } from '@/hooks/useQuery/useGetDepartmentPositions';
+import { useGetEmployees } from '@/hooks/useQuery/useGetEmployees';
 
 interface EmploymentTabProps {
   employee: Employee;
-  departments?: Department[];
+  
 }
 
 const employmentSchema = z.object({
@@ -25,17 +27,27 @@ const employmentSchema = z.object({
 
 type EmploymentFormValues = z.infer<typeof employmentSchema>;
 
-export function EmploymentTab({ employee, departments }: EmploymentTabProps) {
+export function EmploymentTab({ employee }: EmploymentTabProps) {
   const { mutateAsync: updateEmployee, isPending: isUpdatingEmployee } = useUpdateEmployee(employee.id);
+  const { data: departments } = useGetDepartments();
+  const [headSearch, setHeadSearch] = useState('');
+  const [showHeadDropdown, setShowHeadDropdown] = useState(false);
+  const { data: employees } = useGetEmployees(
+    employee.department ? { department: employee.department } : undefined
+  );
+  const { data: positions } = useGetDepartmentPositions(
+    departments?.find((d) => d.name === employee.department)?.id
+  );
   const [showDialog, setShowDialog] = useState(false);
+  const employeeList = (employees?.employees ?? []).filter((e) => e.id !== employee.id);
 
   const fields = [
     { label: 'Employee ID', value: employee.id, name: 'id', readOnly: true },
     { label: 'Department', name: 'department' as const, type: 'select' as const, options: (departments ?? []).map((d) => d.name) },
-    { label: 'Position', name: 'position' as const },
+    { label: 'Position', name: 'position' as const, type: 'select' as const, options: (positions ?? []).map((p) => p.title) },
     { label: 'Employment Type', name: 'employmentType' as const, type: 'select' as const, options: ['Full-time', 'Part-time', 'Contract', 'Intern', 'Remote'] },
     { label: 'Hire Date', name: 'hireDate' as const, type: 'date' },
-    { label: 'Reporting Manager', name: 'reportingManager' as const },
+    { label: 'Reporting Manager', name: 'reportingManager' as const, readOnly: true },
     { label: 'Employment Status', name: 'status' as const, type: 'select' as const, options: ['Active', 'Inactive', 'Probation', 'Resigned', 'Terminated', 'OnLeave'] },
   ];
 
@@ -45,6 +57,7 @@ export function EmploymentTab({ employee, departments }: EmploymentTabProps) {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<EmploymentFormValues>({
     resolver: zodResolver(employmentSchema),
@@ -57,6 +70,12 @@ export function EmploymentTab({ employee, departments }: EmploymentTabProps) {
       status: employee.status,
     },
   });
+
+  const selectEmployee = (name: string) => {
+    setValue('reportingManager', name);
+    setHeadSearch('');
+    setShowHeadDropdown(false);
+  };
 
   const onSubmit = async (data: EmploymentFormValues) => {
     const values = Object.values(data).filter(Boolean);
@@ -71,7 +90,7 @@ export function EmploymentTab({ employee, departments }: EmploymentTabProps) {
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Edit Employment Details</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[40rem] overflow-y-auto pr-6">
             {editableFields.map((f) => {
               const fieldName = f.name as keyof EmploymentFormValues;
               return (
@@ -88,6 +107,57 @@ export function EmploymentTab({ employee, departments }: EmploymentTabProps) {
                 </div>
               );
             })}
+
+            {/* Reporting Manager - searchable */}
+            <div>
+              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Reporting Manager</label>
+              <div
+                className="relative"
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setShowHeadDropdown(false);
+                  }
+                }}
+              >
+                <input
+                  placeholder="Search employee..."
+                  type="text"
+                  {...register('reportingManager', {
+                    onChange: (e) => {
+                      setHeadSearch(e.target.value);
+                      if (e.target.value) setShowHeadDropdown(true);
+                    },
+                  })}
+                  onFocus={() => headSearch && setShowHeadDropdown(true)}
+                  className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+                />
+                {errors.reportingManager && <p className="text-red-500 text-[10px] mt-1">{errors.reportingManager.message}</p>}
+
+                {showHeadDropdown && headSearch.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {employeeList.length === 0 ? (
+                      <div className="p-3 text-xs text-neutral-400 text-center">No employees found</div>
+                    ) : (
+                      employeeList
+                        .filter((e) =>
+                          `${e.firstName} ${e.lastName}`.toLowerCase().includes(headSearch.toLowerCase())
+                        )
+                        .map((e) => (
+                          <button
+                            key={e.id}
+                            type="button"
+                            onMouseDown={() => selectEmployee(`${e.firstName} ${e.lastName}`)}
+                            className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
+                          >
+                            <span className="font-bold text-neutral-900">{e.firstName} {e.lastName}</span>
+                            <span className="block text-[10px] text-neutral-400">{e.department} &middot; {e.position}</span>
+                          </button>
+                        ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={() => setShowDialog(false)} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
@@ -101,7 +171,7 @@ export function EmploymentTab({ employee, departments }: EmploymentTabProps) {
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
           <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider">Employment Information</h3>
-          <button onClick={() => { reset(); setShowDialog(true); }} className="px-3 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5">
+          <button onClick={() => { reset(); console.log('[EmploymentTab] default values:', { department: employee.department, position: employee.position, employmentType: employee.employmentType, hireDate: employee.hireDate, reportingManager: employee.reportingManager, status: employee.status }); setShowDialog(true); }} className="px-3 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
             Edit
           </button>

@@ -48,8 +48,8 @@ export function EditDepartmentDialog({ department, onClose }: EditDepartmentDial
     headSearch.length > 0 ? { search: headSearch, limit: 10 } : undefined
   );
   const { data: positionsData } = useGetDepartmentPositions(department?.id);
-  const employeeList = employeesData?.data?.employees ?? [];
-  const positionsList = positionsData?.data?.positions ?? [];
+  const employeeList = employeesData?.employees ?? [];
+  const positionsList = positionsData ?? [];
 
   const {
     register,

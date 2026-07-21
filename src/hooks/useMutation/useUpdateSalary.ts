@@ -12,6 +12,7 @@ export const useUpdateSalary = (employeeId: string) => {
     onSuccess: () => {
       toast.success('Salary updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['employee', employeeId] });
+      queryClient.refetchQueries({ queryKey: ['employee', employeeId] });
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Failed to update salary.');

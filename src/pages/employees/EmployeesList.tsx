@@ -109,7 +109,7 @@ export default function EmployeesList() {
             className="w-full py-2.5 px-3 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:border-neutral-900"
           >
             <option value="All">All Departments</option>
-            {departmentsData?.data?.departments?.map((d) => (
+            {departmentsData?.map((d) => (
               <option key={d.id} value={d.name}>{d.name}</option>
             ))}
           </select>
@@ -159,7 +159,7 @@ export default function EmployeesList() {
           <div className="p-8 text-center">
             <p className="text-neutral-400 text-sm">Failed to load employees data</p>
           </div>
-        ) : employeesData?.data?.employees?.length === 0 ? (
+        ) : employeesData?.employees?.length === 0 ? (
           <EmptyState
             icon={peopleIcon}
             title="No employees found"
@@ -184,9 +184,9 @@ export default function EmployeesList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employeesData?.data?.employees?.map((emp, index) => (
+              {employeesData?.employees?.map((emp, index) => (
                 <TableRow key={emp.id}>
-                  <TableCell className="text-neutral-500 font-bold">{((currentPage - 1) * (employeesData?.data?.pagination?.limit ?? 10)) + index + 1}</TableCell>
+                  <TableCell className="text-neutral-500 font-bold">{((currentPage - 1) * (employeesData?.pagination?.limit ?? 10)) + index + 1}</TableCell>
                   <TableCell className="font-bold text-neutral-950">{emp.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -233,7 +233,7 @@ export default function EmployeesList() {
             </Table>
         )}
 
-        <Pagination currentPage={currentPage} totalPages={employeesData?.data?.pagination?.totalPages || 1} totalItems={employeesData?.data?.pagination?.totalItems || 0} itemsPerPage={10} onPageChange={setCurrentPage} />
+        <Pagination currentPage={currentPage} totalPages={employeesData?.pagination?.totalPages || 1} totalItems={employeesData?.pagination?.totalItems || 0} itemsPerPage={10} onPageChange={setCurrentPage} />
       </div>
     </div>
     </>

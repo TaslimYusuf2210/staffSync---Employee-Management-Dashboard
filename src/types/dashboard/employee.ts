@@ -52,11 +52,11 @@ export interface Employee {
   emergencyContact: string;
   reportingManager: string;
   photoUrl?: string;
-  education: Education[];
-  salary: Salary;
-  bankAccount: BankAccount;
-  documents: Document[];
-  notes: Note[];
+  Education: Education[];
+  Salary: Salary;
+  BankAccount: BankAccount;
+  Documents: Document[];
+  Notes: Note[];
 }
 
 import type { Department } from './department';
@@ -69,13 +69,13 @@ export interface BankTabProps {
 }
 
 export interface DocumentsSectionProps {
-  documents: Employee['documents'];
+  documents: Employee['Documents'];
   onAdd: (doc: { name: string; type: Document['type'] }) => void;
   onDelete: (id: string) => void;
 }
 
 export interface EducationSectionProps {
-  education: Employee['education'];
+  education: Employee['Education'];
   onAdd: (edu: Omit<Education, 'id'>) => void;
   onDelete: (id: string) => void;
 }
@@ -87,7 +87,7 @@ export interface EmploymentTabProps {
 }
 
 export interface NotesSectionProps {
-  notes: Employee['notes'];
+  notes: Employee['Notes'];
   onAdd: (text: string) => void;
   onDelete: (id: string) => void;
 }
@@ -167,6 +167,11 @@ export interface EmployeeQueryParams {
 /** Response shape for GET /employees/:id */
 export interface SingleEmployeeResponse {
   employee: Employee;
+  Salary?: Salary;
+  BankAccount?: BankAccount;
+  Education?: Education[];
+  Documents?: Document[];
+  Notes?: Note[];
 }
 
 export interface UpdateSalaryPayload {

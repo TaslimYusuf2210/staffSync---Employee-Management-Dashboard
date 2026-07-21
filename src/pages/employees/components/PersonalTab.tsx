@@ -75,7 +75,7 @@ export function PersonalTab({ employee }: PersonalTabProps) {
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <h3 className="font-bold text-sm text-neutral-900 uppercase tracking-wider border-b border-neutral-100 pb-3">Edit Personal Details</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[40rem] overflow-y-auto pr-6">
             {fields.map((f) => (
               <div key={f.name} className={f.colSpan ? 'sm:col-span-2' : ''}>
                 <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">

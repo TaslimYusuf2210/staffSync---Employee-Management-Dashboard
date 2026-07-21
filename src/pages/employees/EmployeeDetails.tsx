@@ -164,12 +164,12 @@ export default function EmployeeDetails() {
       {/* Tabs content */}
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 shadow-sm">
         {activeTab === 'personal' && <PersonalTab employee={employee} />}
-        {activeTab === 'employment' && <EmploymentTab employee={employee} departments={[]} />}
-        {activeTab === 'education' && <EducationSection education={employee.education} />}
+        {activeTab === 'employment' && <EmploymentTab employee={employee} />}
+        {activeTab === 'education' && <EducationSection education={employee.Education} />}
         {activeTab === 'salary' && <SalaryTab employee={employee} />}
         {activeTab === 'bank' && <BankTab employee={employee}/>}
-        {activeTab === 'documents' && <DocumentsSection documents={employee.documents}  />}
-        {activeTab === 'notes' && <NotesSection notes={employee.notes}  />}
+        {activeTab === 'documents' && <DocumentsSection documents={employee.Documents}  />}
+        {activeTab === 'notes' && <NotesSection notes={employee.Notes}  />}
       </div>
 
       {showDeleteDialog && (

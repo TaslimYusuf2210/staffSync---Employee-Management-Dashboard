@@ -7,7 +7,18 @@ export const useGetEmployeeById = (id: string | undefined) => {
     queryKey: ['employee', id],
     queryFn: () => getEmployeeById(id!),
     enabled: !!id,
-    select: (res) => res.data?.employee,
+    select: (res) => {
+      if (!res.data?.employee) return undefined;
+      return {
+        ...res.data.employee,
+        salary: res.data.Salary ?? res.data.employee.salary,
+        bankAccount: res.data.BankAccount ?? res.data.employee.bankAccount,
+        education: res.data.Education ?? res.data.employee.education,
+        documents: res.data.Documents ?? res.data.employee.documents,
+        notes: res.data.Notes ?? res.data.employee.notes,
+      } as Employee;
+    },
+    refetchOnMount: true,
   });
 }
 

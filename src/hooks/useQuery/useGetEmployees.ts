@@ -7,5 +7,6 @@ export const useGetEmployees = (params?: EmployeeQueryParams) => {
     queryKey: ['employees', params],
     queryFn: () => getEmployees(params),
     placeholderData: (previousData) => previousData,
+    select: (res) => res.data,
   });
 }

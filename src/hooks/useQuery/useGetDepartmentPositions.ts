@@ -6,5 +6,6 @@ export const useGetDepartmentPositions = (id: string | undefined) => {
         queryKey: ['departmentPositions', id],
         queryFn: () => getDepartmentPositions(id),
         enabled: !!id,
+        select: (res) => res.data?.positions,
     });
 };

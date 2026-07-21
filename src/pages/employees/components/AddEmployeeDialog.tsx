@@ -48,7 +48,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
     });
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const { data: departmentsData } = useGetDepartments();
-  const departments = departmentsData?.data?.departments ?? [];
+  const departments = departmentsData ?? [];
   console.log('[AddEmployeeDialog] departments:', departments);
   departments.forEach((d) => console.log(`  - id: ${d.id}, name: "${d.name}"`));
 
@@ -79,7 +79,7 @@ export function AddEmployeeDialog({ open, onClose }: AddEmployeeDialogProps) {
   const selectedDepartmentName = watch('department');
   const selectedDepartmentId = departments.find((d) => d.name === selectedDepartmentName)?.id ?? '';
   const { data: positionsData } = useGetDepartmentPositions(selectedDepartmentId || '');
-  const positionsList = positionsData?.data?.positions ?? [];
+  const positionsList = positionsData ?? [];
 
   const stepFields: (keyof EmployeeFormValues)[][] = [
     ['firstName', 'lastName', 'email', 'phoneNumber', 'gender'],

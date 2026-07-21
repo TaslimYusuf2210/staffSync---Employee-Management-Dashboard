@@ -335,6 +335,7 @@ Learned how `select` works as a transformer in `useQuery`.
 - **Referential stability**: If the transformed result is the same reference as the previous one, TanStack Query skips the re-render. This makes `select` more efficient than manually transforming in the component.
 - **Runs on every fetch**: Each time the query refetches, `select` runs again, so the unwrapped shape stays consistent.
 - **Pattern applied to multiple hooks**:
+
   ```ts
   // Returns the full response data (employees + pagination)
   useGetEmployees  →  select: (res) => res.data

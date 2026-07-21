@@ -34,7 +34,7 @@ export function AddDepartmentDialog({ open, onClose }: AddDepartmentDialogProps)
       onClose();
     },
   });
-  const employeeList = employeesData?.data?.employees ?? [];
+  const employeeList = employeesData?.employees ?? [];
 
   const {
     register,

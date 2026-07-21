@@ -1,6 +1,6 @@
 // ─── Department Domain Types ─────────────────────────────────────────
 
-export interface DepartmentPosition {
+export interface  DepartmentPosition {
   id: string;
   title: string;
   description?: string;
