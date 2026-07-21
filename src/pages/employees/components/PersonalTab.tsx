@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Hourglass } from 'ldrs/react';
+import 'ldrs/react/Hourglass.css';
 import { Dialog } from '../../../components/ui/dialog';
 import type { Employee } from '../../../types/dashboard/employee';
+import { useUpdateEmployee } from '@/hooks/useMutation/useUpdateEmployee';
 
 
 interface PersonalTabProps {
   employee: Employee;
-  onSave: (data: Record<string, string>) => void;
 }
 
 const personalSchema = z.object({
@@ -24,7 +26,8 @@ const personalSchema = z.object({
 
 type PersonalFormValues = z.infer<typeof personalSchema>;
 
-export function PersonalTab({ employee, onSave }: PersonalTabProps) {
+export function PersonalTab({ employee }: PersonalTabProps) {
+  const { mutateAsync: updateEmployee, isPending: isUpdatingEmployee } = useUpdateEmployee(employee.id);
   const [showDialog, setShowDialog] = useState(false);
 
   const fields = [
@@ -57,10 +60,11 @@ export function PersonalTab({ employee, onSave }: PersonalTabProps) {
     },
   });
 
-  const onSubmit = (data: PersonalFormValues) => {
+  const onSubmit = async (data: PersonalFormValues) => {
     const values = Object.values(data).filter(Boolean);
     if (values.length === 0) return;
-    onSave(data);
+    await updateEmployee(data);
+    reset(data);
     setShowDialog(false);
   };
 
@@ -92,7 +96,9 @@ export function PersonalTab({ employee, onSave }: PersonalTabProps) {
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={() => setShowDialog(false)} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
-            <button type="submit" className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">Save Changes</button>
+            <button type="submit" disabled={isUpdatingEmployee} className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              {isUpdatingEmployee ? <><Hourglass size={14} /> Saving...</> : 'Save Changes'}
+            </button>
           </div>
         </form>
       </Dialog>

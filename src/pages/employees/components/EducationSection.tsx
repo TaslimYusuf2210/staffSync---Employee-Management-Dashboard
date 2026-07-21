@@ -7,8 +7,6 @@ import type { Employee, Education } from '../../../types/dashboard/employee';
 
 interface EducationSectionProps {
   education: Employee['education'];
-  onAdd: (edu: Omit<Education, 'id'>) => void;
-  onDelete: (id: string) => void;
 }
 
 const educationSchema = z.object({
@@ -21,7 +19,7 @@ const educationSchema = z.object({
 
 type EducationFormValues = z.infer<typeof educationSchema>;
 
-export function EducationSection({ education, onAdd, onDelete }: EducationSectionProps) {
+export function EducationSection({ education }: EducationSectionProps) {
   const [showDialog, setShowDialog] = useState(false);
   const educationList = education ?? [];
   const {
@@ -37,7 +35,6 @@ export function EducationSection({ education, onAdd, onDelete }: EducationSectio
   });
 
   const onSubmit = (data: EducationFormValues) => {
-    onAdd(data);
     reset();
     setShowDialog(false);
   };
@@ -122,7 +119,7 @@ export function EducationSection({ education, onAdd, onDelete }: EducationSectio
                 Field: {edu.fieldOfStudy} | Class of {edu.graduationYear}
               </span>
             </div>
-            <button onClick={() => onDelete(edu.id)} className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer">Delete</button>
+            <button className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer">Delete</button>
           </div>
         ))}
       </div>

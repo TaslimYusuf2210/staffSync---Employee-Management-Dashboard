@@ -4,11 +4,10 @@ import type { Employee, Document } from '../../../types/dashboard/employee';
 
 interface DocumentsSectionProps {
   documents: Employee['documents'];
-  onAdd: (doc: { name: string; type: Document['type'] }) => void;
-  onDelete: (id: string) => void;
+  
 }
 
-export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectionProps) {
+export function DocumentsSection({ documents }: DocumentsSectionProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'Resume' as Document['type'] });
   const documentsList = documents ?? [];
@@ -16,7 +15,6 @@ export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectio
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name) return;
-    onAdd(form);
     setForm({ name: '', type: 'Resume' });
     setShowDialog(false);
   };
@@ -67,7 +65,7 @@ export function DocumentsSection({ documents, onAdd, onDelete }: DocumentsSectio
               </div>
               <div className="flex gap-2">
                 <button onClick={() => alert(`Simulating file download/preview for ${doc.name}`)} className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-[10px] font-bold rounded-lg text-neutral-700 transition-all cursor-pointer">Preview</button>
-                <button onClick={() => onDelete(doc.id)} className="px-2 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer">Delete</button>
+                <button className="px-2 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all cursor-pointer">Delete</button>
               </div>
             </div>
           ))}

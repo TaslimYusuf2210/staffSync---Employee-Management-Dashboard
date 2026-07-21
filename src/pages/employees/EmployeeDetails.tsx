@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useApp } from '../../context/AppContext';
-import type { Employee, Education, Document, Note, TabType } from '../../types/dashboard/employee';
+import type { TabType } from '../../types/dashboard/employee';
 import { StatusBadge } from '../../components/StatusBadge';
 import { DeleteEmployeeDialog } from './components/DeleteEmployeeDialog';
 import { PersonalTab } from './components/PersonalTab';
@@ -12,8 +11,6 @@ import { EducationSection } from './components/EducationSection';
 import { DocumentsSection } from './components/DocumentsSection';
 import { NotesSection } from './components/NotesSection';
 import { useGetEmployeeById } from '../../hooks/useQuery/useGetEmployeeById';
-import { useAddEducation } from '../../hooks/useMutation/useAddEducation';
-import { useUpdateEmployee } from '../../hooks/useMutation/useUpdateEmployee';
 
 const TABS: { key: TabType; label: string }[] = [
   { key: 'personal', label: 'personal' },
@@ -29,12 +26,9 @@ export default function EmployeeDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { departments, updateEmployee } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('personal');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: employee } = useGetEmployeeById(id);
-  const addEducation = useAddEducation(id ?? '');
-  const updateEmployeeMutation = useUpdateEmployee(id ?? '');
   console.log('[EmployeeDetails] employee:', employee);
   console.log('[EmployeeDetails] id from params:', id);
 
@@ -50,57 +44,7 @@ export default function EmployeeDetails() {
     );
   }
 
-  const handleSavePersonal = (data: Record<string, string>) => {
-    updateEmployeeMutation.mutate({
-      firstName: data.firstName, lastName: data.lastName, email: data.email,
-      phoneNumber: data.phoneNumber, gender: data.gender, dob: data.dob,
-      address: data.address, emergencyContact: data.emergencyContact,
-    });
-  };
-
-  const handleSaveEmployment = (data: Record<string, string>) => {
-    updateEmployeeMutation.mutate({
-      department: data.department, position: data.position,
-      employmentType: data.employmentType as Employee['employmentType'],
-      hireDate: data.hireDate, reportingManager: data.reportingManager,
-      status: data.status as Employee['status'],
-    });
-  };
-
-  const handleSaveSalary = (salary: { baseSalary: number; bonus: number; allowances: number }) => {
-    updateEmployee(employee.id, { salary });
-  };
-
-  const handleSaveBank = (bank: { bankName: string; accountName: string; accountNumber: string }) => {
-    updateEmployee(employee.id, { bankAccount: bank });
-  };
-
-  const handleAddEducation = (edu: Omit<Education, 'id'>) => {
-    addEducation.mutate(edu);
-  };
-
-  const handleDeleteEdu = (eduId: string) => {
-    updateEmployee(employee.id, { education: (employee.education ?? []).filter((e) => e.id !== eduId) });
-  };
-
-  const handleAddDoc = (doc: { name: string; type: Document['type'] }) => {
-    updateEmployee(employee.id, {
-      documents: [...(employee.documents ?? []), { id: `doc-${Date.now()}`, ...doc, uploadDate: new Date().toISOString().split('T')[0] }],
-    });
-  };
-
-  const handleDeleteDoc = (docId: string) => {
-    updateEmployee(employee.id, { documents: (employee.documents ?? []).filter((d) => d.id !== docId) });
-  };
-
-  const handleAddNote = (text: string) => {
-    const note: Note = { id: `n-${Date.now()}`, text, createdDate: new Date().toISOString().split('T')[0] };
-    updateEmployee(employee.id, { notes: [note, ...(employee.notes ?? [])] });
-  };
-
-  const handleDeleteNote = (noteId: string) => {
-    updateEmployee(employee.id, { notes: (employee.notes ?? []).filter((n) => n.id !== noteId) });
-  };
+  
 
   return (
     <div className="space-y-6">
@@ -219,13 +163,13 @@ export default function EmployeeDetails() {
 
       {/* Tabs content */}
       <div className="bg-white border border-neutral-200 rounded-2xl p-6 md:p-8 shadow-sm">
-        {activeTab === 'personal' && <PersonalTab employee={employee} onSave={handleSavePersonal} />}
-        {activeTab === 'employment' && <EmploymentTab employee={employee} departments={departments} onSave={handleSaveEmployment} />}
-        {activeTab === 'education' && <EducationSection education={employee.education} onAdd={handleAddEducation} onDelete={handleDeleteEdu} />}
-        {activeTab === 'salary' && <SalaryTab employee={employee} onSave={handleSaveSalary} />}
-        {activeTab === 'bank' && <BankTab employee={employee} onSave={handleSaveBank} />}
-        {activeTab === 'documents' && <DocumentsSection documents={employee.documents} onAdd={handleAddDoc} onDelete={handleDeleteDoc} />}
-        {activeTab === 'notes' && <NotesSection notes={employee.notes} onAdd={handleAddNote} onDelete={handleDeleteNote} />}
+        {activeTab === 'personal' && <PersonalTab employee={employee} />}
+        {activeTab === 'employment' && <EmploymentTab employee={employee} departments={[]} />}
+        {activeTab === 'education' && <EducationSection education={employee.education} />}
+        {activeTab === 'salary' && <SalaryTab employee={employee} />}
+        {activeTab === 'bank' && <BankTab employee={employee}/>}
+        {activeTab === 'documents' && <DocumentsSection documents={employee.documents}  />}
+        {activeTab === 'notes' && <NotesSection notes={employee.notes}  />}
       </div>
 
       {showDeleteDialog && (

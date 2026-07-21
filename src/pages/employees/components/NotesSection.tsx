@@ -7,8 +7,6 @@ import type { Employee } from '../../../types/dashboard/employee';
 
 interface NotesSectionProps {
   notes: Employee['notes'];
-  onAdd: (text: string) => void;
-  onDelete: (id: string) => void;
 }
 
 const noteSchema = z.object({
@@ -17,7 +15,7 @@ const noteSchema = z.object({
 
 type NoteFormValues = z.infer<typeof noteSchema>;
 
-export function NotesSection({ notes, onAdd, onDelete }: NotesSectionProps) {
+export function NotesSection({ notes }: NotesSectionProps) {
   const [showDialog, setShowDialog] = useState(false);
   const notesList = notes ?? [];
   const {
@@ -31,7 +29,6 @@ export function NotesSection({ notes, onAdd, onDelete }: NotesSectionProps) {
   });
 
   const onSubmit = (data: NoteFormValues) => {
-    onAdd(data.noteText);
     reset();
     setShowDialog(false);
   };
@@ -70,7 +67,7 @@ export function NotesSection({ notes, onAdd, onDelete }: NotesSectionProps) {
                 <p className="text-sm text-neutral-800">{note.text}</p>
                 <span className="text-[10px] text-neutral-400 font-bold block mt-2">{note.createdDate}</span>
               </div>
-              <button onClick={() => onDelete(note.id)} className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all ml-4 shrink-0 cursor-pointer">Delete</button>
+              <button className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[10px] font-bold rounded-lg text-red-600 transition-all ml-4 shrink-0 cursor-pointer">Delete</button>
             </div>
           ))}
         </div>

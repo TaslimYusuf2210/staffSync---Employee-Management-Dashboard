@@ -169,3 +169,14 @@ export interface SingleEmployeeResponse {
   employee: Employee;
 }
 
+export interface UpdateSalaryPayload {
+  baseSalary: number;
+  bonus: number;
+  allowances: number;
+}
+
+export interface EmployeeBankAccount {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+}

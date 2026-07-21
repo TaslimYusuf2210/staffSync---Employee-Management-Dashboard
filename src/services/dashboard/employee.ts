@@ -1,5 +1,5 @@
 import { request } from '../api';
-import type { EmployeesResponse, SingleEmployeeResponse, EmployeeQueryParams, CreateEmployeePayload, UpdateEmployeePayload, Education } from '../../types/dashboard/employee';
+import type { EmployeesResponse, SingleEmployeeResponse, EmployeeQueryParams, CreateEmployeePayload, UpdateEmployeePayload, Education, UpdateSalaryPayload, EmployeeBankAccount } from '../../types/dashboard/employee';
 
 export const getEmployees = (params?: EmployeeQueryParams) =>
   request<EmployeesResponse>('/employees', {
@@ -31,6 +31,18 @@ export const addEmployeeEducation = (id: string, payload: Omit<Education, 'id'>)
 
 export const updateEmployee = (id: string, payload: UpdateEmployeePayload) =>
   request<any>(`/employees/${id}`, {
+    method: 'PUT',
+    data: payload,
+  });
+
+export const updateEmployeeSalary = (id: string, payload: UpdateSalaryPayload) =>
+  request<any>(`/employees/${id}/salary`, {
+    method: 'PUT',
+    data: payload,
+  });
+
+export const updateEmployeeBank = (id: string, payload: EmployeeBankAccount) => 
+  request<any>(`/employees/${id}/bank`, {
     method: 'PUT',
     data: payload,
   });

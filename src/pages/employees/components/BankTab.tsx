@@ -2,23 +2,26 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Hourglass } from 'ldrs/react';
+import 'ldrs/react/Hourglass.css';
 import { Dialog } from '../../../components/ui/dialog';
 import type { Employee } from '../../../types/dashboard/employee';
+import { useUpdateBank } from '@/hooks/useMutation/useUpdateBank';
 
 interface BankTabProps {
   employee: Employee;
-  onSave: (bank: { bankName: string; accountName: string; accountNumber: string }) => void;
 }
 
 const bankSchema = z.object({
-  bankName: z.string().min(1, { message: 'Bank name is required' }),
-  accountName: z.string().min(1, { message: 'Account name is required' }),
-  accountNumber: z.string().min(1, { message: 'Account number is required' }),
+  bankName: z.string().optional().or(z.literal('')),
+  accountName: z.string().optional().or(z.literal('')),
+  accountNumber: z.string().optional().or(z.literal('')),
 });
 
 type BankFormValues = z.infer<typeof bankSchema>;
 
-export function BankTab({ employee, onSave }: BankTabProps) {
+export function BankTab({ employee }: BankTabProps) {
+  const { mutateAsync: updateBank, isPending: isUpdatingBank } = useUpdateBank(employee.id);
   const [showDialog, setShowDialog] = useState(false);
   const b = employee.bankAccount ?? { bankName: '', accountName: '', accountNumber: '' };
 
@@ -36,8 +39,15 @@ export function BankTab({ employee, onSave }: BankTabProps) {
     },
   });
 
-  const onSubmit = (data: BankFormValues) => {
-    onSave(data);
+  const onSubmit = async (data: BankFormValues) => {
+    const values = Object.values(data).filter(Boolean);
+    if (values.length === 0) return;
+    await updateBank({
+      bankName: data.bankName ?? '',
+      accountName: data.accountName ?? '',
+      accountNumber: data.accountNumber ?? '',
+    });
+    reset(data);
     setShowDialog(false);
   };
 
@@ -59,7 +69,9 @@ export function BankTab({ employee, onSave }: BankTabProps) {
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={() => setShowDialog(false)} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
-            <button type="submit" className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">Save Changes</button>
+            <button type="submit" disabled={isUpdatingBank} className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              {isUpdatingBank ? <><Hourglass size={14} /> Saving...</> : 'Save Changes'}
+            </button>
           </div>
         </form>
       </Dialog>

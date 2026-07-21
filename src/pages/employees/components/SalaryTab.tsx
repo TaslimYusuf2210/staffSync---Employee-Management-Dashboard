@@ -2,23 +2,26 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Hourglass } from 'ldrs/react';
+import 'ldrs/react/Hourglass.css';
 import { Dialog } from '../../../components/ui/dialog';
 import type { Employee } from '../../../types/dashboard/employee';
+import { useUpdateSalary } from '@/hooks/useMutation/useUpdateSalary';
 
 interface SalaryTabProps {
   employee: Employee;
-  onSave: (salary: { baseSalary: number; bonus: number; allowances: number }) => void;
 }
 
 const salarySchema = z.object({
-  baseSalary: z.coerce.number().min(0, { message: 'Must be a valid number' }),
-  bonus: z.coerce.number().min(0, { message: 'Must be a valid number' }),
-  allowances: z.coerce.number().min(0, { message: 'Must be a valid number' }),
+  baseSalary: z.coerce.number().optional(),
+  bonus: z.coerce.number().optional(),
+  allowances: z.coerce.number().optional(),
 });
 
 type SalaryFormValues = z.infer<typeof salarySchema>;
 
-export function SalaryTab({ employee, onSave }: SalaryTabProps) {
+export function SalaryTab({ employee }: SalaryTabProps) {
+  const { mutateAsync: updateSalary, isPending: isUpdatingSalary } = useUpdateSalary(employee.id);
   const [showDialog, setShowDialog] = useState(false);
   const s = employee.salary ?? { baseSalary: 0, bonus: 0, allowances: 0 };
   const total = (s.baseSalary ?? 0) + (s.bonus ?? 0) + (s.allowances ?? 0);
@@ -41,8 +44,15 @@ export function SalaryTab({ employee, onSave }: SalaryTabProps) {
   const watchedValues = watch();
   const formTotal = (watchedValues.baseSalary ?? 0) + (watchedValues.bonus ?? 0) + (watchedValues.allowances ?? 0);
 
-  const onSubmit = (data: SalaryFormValues) => {
-    onSave(data);
+  const onSubmit = async (data: SalaryFormValues) => {
+    const hasValues = Object.values(data).some((v) => v !== undefined && v !== 0);
+    if (!hasValues) return;
+    await updateSalary({
+      baseSalary: data.baseSalary ?? 0,
+      bonus: data.bonus ?? 0,
+      allowances: data.allowances ?? 0,
+    });
+    reset(data);
     setShowDialog(false);
   };
 
@@ -68,7 +78,9 @@ export function SalaryTab({ employee, onSave }: SalaryTabProps) {
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={() => setShowDialog(false)} className="px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-xs font-bold rounded-xl cursor-pointer">Cancel</button>
-            <button type="submit" className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer">Save Changes</button>
+            <button type="submit" disabled={isUpdatingSalary} className="px-3.5 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              {isUpdatingSalary ? <><Hourglass size={14} /> Saving...</> : 'Save Changes'}
+            </button>
           </div>
         </form>
       </Dialog>
