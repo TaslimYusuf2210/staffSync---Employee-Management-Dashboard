@@ -13,15 +13,17 @@ interface PersonalTabProps {
   employee: Employee;
 }
 
+const phoneRegex = /^\+234(?:70[1-9]|80[2-9]|81[0-8]|90[1-9]|91[1-356]|702[5-9])\d{7}$/;
+
 const personalSchema = z.object({
   firstName: z.string().optional().or(z.literal('')),
   lastName: z.string().optional().or(z.literal('')),
-  email: z.string().optional().or(z.literal('')),
-  phoneNumber: z.string().optional().or(z.literal('')),
+  email: z.string().email({ message: 'Please enter a valid email address' }).optional().or(z.literal('')),
+  phoneNumber: z.string().regex(phoneRegex, { message: 'Please enter a valid Nigerian phone number' }).optional().or(z.literal('')),
   gender: z.string().optional().or(z.literal('')),
   dob: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
-  emergencyContact: z.string().optional().or(z.literal('')),
+  emergencyContact: z.string().regex(phoneRegex, { message: 'Please enter a valid Nigerian phone number' }).optional().or(z.literal('')),
 });
 
 type PersonalFormValues = z.infer<typeof personalSchema>;
