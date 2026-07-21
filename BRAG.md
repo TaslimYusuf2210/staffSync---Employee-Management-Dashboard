@@ -322,3 +322,27 @@ Wrapped up the full department management flow with several improvements:
 - Fixed layout issues in `EmployeeDetails.tsx` (76 insertions, 18 deletions) — improved the arrangement of employee info sections for a cleaner, more structured display.
 
 ---
+
+## 2026-07-21
+
+### TanStack Query — `select` Option
+
+Learned how `select` works as a transformer in `useQuery`.
+
+- **`select`** is a function that runs on the fetched data **before** it reaches the component. It extracts or reshapes the response so components get exactly what they need.
+- **Before `select`**: `const { data } = useGetEmployees()` → `data` is the raw `ApiResponse<EmployeesResponse>` — components have to drill with `data?.data?.employees?.map(...)` everywhere.
+- **After `select: (res) => res.data`**: `data` is directly the unwrapped `EmployeesResponse` — components use `data?.employees?.map(...)`.
+- **Referential stability**: If the transformed result is the same reference as the previous one, TanStack Query skips the re-render. This makes `select` more efficient than manually transforming in the component.
+- **Runs on every fetch**: Each time the query refetches, `select` runs again, so the unwrapped shape stays consistent.
+- **Pattern applied to multiple hooks**:
+  ```ts
+  // Returns the full response data (employees + pagination)
+  useGetEmployees  →  select: (res) => res.data
+
+  // Returns just the array
+  useGetDepartments          →  select: (res) => res.data?.departments
+  useGetDepartmentPositions  →  select: (res) => res.data?.positions
+  useGetEmployeeById         →  select: (res) => res.data?.employee
+  ```
+
+---
