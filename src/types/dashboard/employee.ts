@@ -123,6 +123,24 @@ export interface EmployeesResponse {
   pagination: Pagination;
 }
 
+export interface UpdateEmployeePayload {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  gender?: string;
+  dob?: string;
+  address?: string;
+  emergencyContact?: string;
+  department?: string;
+  position?: string;
+  employmentType?: string;
+  hireDate?: string;
+  reportingManager?: string;
+  status?: string;
+  photoUrl?: string;
+}
+
 export interface CreateEmployeePayload {
   firstName: string;
   lastName: string;

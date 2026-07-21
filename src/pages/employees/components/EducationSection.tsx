@@ -71,20 +71,6 @@ export function EducationSection({ education, onAdd, onDelete }: EducationSectio
           </div>
         </form>
       </Dialog>
-          {(['institutionName', 'degree', 'qualification', 'fieldOfStudy', 'graduationYear'] as const).map((f) => (
-            <div key={f}>
-              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
-                {f === 'institutionName' ? 'Institution Name' : f === 'graduationYear' ? 'Graduation Year' : f.charAt(0).toUpperCase() + f.slice(1).replace(/([A-Z])/g, ' $1')}
-              </label>
-              <input type="text" {...register(f)} className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
-              {errors[f] && <p className="text-red-500 text-[10px] mt-1">{errors[f]?.message}</p>}
-            </div>
-          ))}
-          <div className="flex items-end">
-            <button type="submit" className="px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 rounded-xl text-xs font-bold transition-all w-full cursor-pointer">Save Record</button>
-          </div>
-        </form>
-      )}
 
       {educationList.length === 0 ? renderEmptyState() : renderRecords()}
     </div>

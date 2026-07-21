@@ -5,20 +5,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog } from '../../../components/ui/dialog';
 import type { Employee } from '../../../types/dashboard/employee';
 
+
 interface PersonalTabProps {
   employee: Employee;
   onSave: (data: Record<string, string>) => void;
 }
 
 const personalSchema = z.object({
-  firstName: z.string().min(1, { message: 'First name is required' }),
-  lastName: z.string().min(1, { message: 'Last name is required' }),
-  email: z.string().email({ message: 'Please enter a valid email' }),
-  phoneNumber: z.string().min(1, { message: 'Phone number is required' }),
-  gender: z.string().min(1, { message: 'Gender is required' }),
-  dob: z.string().optional(),
-  address: z.string().optional(),
-  emergencyContact: z.string().optional(),
+  firstName: z.string().optional().or(z.literal('')),
+  lastName: z.string().optional().or(z.literal('')),
+  email: z.string().optional().or(z.literal('')),
+  phoneNumber: z.string().optional().or(z.literal('')),
+  gender: z.string().optional().or(z.literal('')),
+  dob: z.string().optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
+  emergencyContact: z.string().optional().or(z.literal('')),
 });
 
 type PersonalFormValues = z.infer<typeof personalSchema>;
@@ -57,6 +58,8 @@ export function PersonalTab({ employee, onSave }: PersonalTabProps) {
   });
 
   const onSubmit = (data: PersonalFormValues) => {
+    const values = Object.values(data).filter(Boolean);
+    if (values.length === 0) return;
     onSave(data);
     setShowDialog(false);
   };

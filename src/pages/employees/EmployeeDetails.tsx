@@ -13,6 +13,7 @@ import { DocumentsSection } from './components/DocumentsSection';
 import { NotesSection } from './components/NotesSection';
 import { useGetEmployeeById } from '../../hooks/useQuery/useGetEmployeeById';
 import { useAddEducation } from '../../hooks/useMutation/useAddEducation';
+import { useUpdateEmployee } from '../../hooks/useMutation/useUpdateEmployee';
 
 const TABS: { key: TabType; label: string }[] = [
   { key: 'personal', label: 'personal' },
@@ -33,6 +34,7 @@ export default function EmployeeDetails() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: employee } = useGetEmployeeById(id);
   const addEducation = useAddEducation(id ?? '');
+  const updateEmployeeMutation = useUpdateEmployee(id ?? '');
   console.log('[EmployeeDetails] employee:', employee);
   console.log('[EmployeeDetails] id from params:', id);
 
@@ -49,7 +51,7 @@ export default function EmployeeDetails() {
   }
 
   const handleSavePersonal = (data: Record<string, string>) => {
-    updateEmployee(employee.id, {
+    updateEmployeeMutation.mutate({
       firstName: data.firstName, lastName: data.lastName, email: data.email,
       phoneNumber: data.phoneNumber, gender: data.gender, dob: data.dob,
       address: data.address, emergencyContact: data.emergencyContact,
@@ -57,7 +59,7 @@ export default function EmployeeDetails() {
   };
 
   const handleSaveEmployment = (data: Record<string, string>) => {
-    updateEmployee(employee.id, {
+    updateEmployeeMutation.mutate({
       department: data.department, position: data.position,
       employmentType: data.employmentType as Employee['employmentType'],
       hireDate: data.hireDate, reportingManager: data.reportingManager,
@@ -166,36 +168,36 @@ export default function EmployeeDetails() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Email</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.email}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.email}</p>
           </div>
-          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Phone</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.phoneNumber}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.phoneNumber}</p>
           </div>
-          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Employment type</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.employmentType}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.employmentType}</p>
           </div>
-          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Hire date</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.hireDate}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.hireDate}</p>
           </div>
-          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5">
+          <div className="rounded-3xl bg-surface-subtle border border-neutral-100 p-5 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Manager</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.reportingManager || 'Not assigned'}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.reportingManager || 'Not assigned'}</p>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-3xl border border-neutral-100 p-5 bg-neutral-50">
+          <div className="rounded-3xl border border-neutral-100 p-5 bg-neutral-50 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Address</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.address || 'No address provided'}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.address || 'No address provided'}</p>
           </div>
-          <div className="rounded-3xl border border-neutral-100 p-5 bg-neutral-50">
+          <div className="rounded-3xl border border-neutral-100 p-5 bg-neutral-50 min-w-0">
             <p className="text-[11px] uppercase tracking-[0.24em] text-neutral-400">Emergency contact</p>
-            <p className="mt-3 text-sm font-semibold text-neutral-950">{employee.emergencyContact || 'Not available'}</p>
+            <p className="mt-3 text-sm font-semibold text-neutral-950 break-words">{employee.emergencyContact || 'Not available'}</p>
           </div>
         </div>
       </div>
