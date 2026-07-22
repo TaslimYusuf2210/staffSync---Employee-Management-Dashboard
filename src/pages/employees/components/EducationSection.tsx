@@ -4,9 +4,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Hourglass } from 'ldrs/react';
 import 'ldrs/react/Hourglass.css';
-import { toast } from 'sonner';
 import { Dialog } from '../../../components/ui/dialog';
-import type { Employee, Education } from '../../../types/dashboard/employee';
+import type { Employee } from '../../../types/dashboard/employee';
 import { useAddEducation } from '@/hooks/useMutation/useAddEducation';
 import { useDeleteEducation } from '@/hooks/useMutation/useDeleteEducation';
 import institutions from '@/constants/NigeriaInstitutions';
@@ -49,7 +48,7 @@ const allCourses = courses.faculties.flatMap((faculty) =>
 
 export function EducationSection({ education, employeeId }: EducationSectionProps) {
   const { mutateAsync: addEducation, isPending: isAdding } = useAddEducation(employeeId);
-  const { mutateAsync: deleteEducation, isPending: isDeleting } = useDeleteEducation(employeeId);
+  const { mutateAsync: deleteEducation } = useDeleteEducation(employeeId);
   const [showDialog, setShowDialog] = useState(false);
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
@@ -131,7 +130,7 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
 
   const selectFieldOfStudy = (name: string) => {
     setValue('fieldOfStudy', name);
-    setFieldOfStudySearch('');
+    setFieldOfStudySearch(name);
     setShowFieldOfStudyDropdown(false);
     setIsFieldSelected(true);
   };
@@ -226,51 +225,64 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
             {/* Qualification - searchable dropdown */}
             <div>
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Qualification</label>
-              <div
-                className="relative"
-                onBlur={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget)) {
-                    setShowQualificationDropdown(false);
-                  }
-                }}
-              >
-                <input
-                  placeholder="Search qualification..."
-                  type="text"
-                  value={isQualSelected && selectedQual ? `${selectedQual.abbreviation} — ${selectedQual.fullName}` : qualificationSearch}
-                  {...register('qualification', {
-                    onChange: (e) => {
-                      setIsQualSelected(false);
-                      setQualificationSearch(e.target.value);
-                      if (e.target.value) setShowQualificationDropdown(true);
-                    },
-                  })}
-                  onFocus={() => qualificationSearch && setShowQualificationDropdown(true)}
-                  className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
-                />
-                {errors.qualification && <p className="text-red-500 text-[10px] mt-1">{errors.qualification.message}</p>}
 
-                {showQualificationDropdown && qualificationSearch.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
-                    {filteredQualifications.length === 0 ? (
-                      <div className="p-3 text-xs text-neutral-400 text-center">No qualifications found</div>
-                    ) : (
-                      filteredQualifications.map((q) => (
-                        <button
-                          key={q.abbreviation}
-                          type="button"
-                          onMouseDown={() => selectQualification(q.abbreviation)}
-                          className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
-                        >
-                          <span className="font-bold text-neutral-900">{q.abbreviation}</span>
-                          <span className="ml-1.5 text-neutral-500">{q.fullName}</span>
-                          <span className="block text-[10px] text-neutral-400 mt-0.5">{q.category} &middot; {q.institutionType}</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
+              {isQualSelected && selectedQual ? (
+                <div className="flex items-center gap-2 py-2 px-3 border border-[#ccd5ae] bg-[#ccd5ae]/10 rounded-xl text-xs">
+                  <span className="font-bold text-neutral-900">{selectedQual.abbreviation}</span>
+                  <span className="text-neutral-500">— {selectedQual.fullName}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setValue('qualification', ''); setIsQualSelected(false); setQualificationSearch(''); }}
+                    className="ml-auto text-neutral-400 hover:text-red-500 text-xs cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="relative"
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      setShowQualificationDropdown(false);
+                    }
+                  }}
+                >
+                  <input
+                    placeholder="Search qualification..."
+                    type="text"
+                    {...register('qualification', {
+                      onChange: (e) => {
+                        setQualificationSearch(e.target.value);
+                        if (e.target.value) setShowQualificationDropdown(true);
+                      },
+                    })}
+                    onFocus={() => qualificationSearch && setShowQualificationDropdown(true)}
+                    className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+                  />
+                  {errors.qualification && <p className="text-red-500 text-[10px] mt-1">{errors.qualification.message}</p>}
+
+                  {showQualificationDropdown && qualificationSearch.length > 0 && (
+                    <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                      {filteredQualifications.length === 0 ? (
+                        <div className="p-3 text-xs text-neutral-400 text-center">No qualifications found</div>
+                      ) : (
+                        filteredQualifications.map((q) => (
+                          <button
+                            key={q.abbreviation}
+                            type="button"
+                            onMouseDown={() => selectQualification(q.abbreviation)}
+                            className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
+                          >
+                            <span className="font-bold text-neutral-900">{q.abbreviation}</span>
+                            <span className="ml-1.5 text-neutral-500">{q.fullName}</span>
+                            <span className="block text-[10px] text-neutral-400 mt-0.5">{q.category} &middot; {q.institutionType}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Selected qualification info */}
@@ -286,51 +298,63 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
             {/* Field of Study - searchable dropdown */}
             <div>
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Field of Study</label>
-              <div
-                className="relative"
-                onBlur={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget)) {
-                    setShowFieldOfStudyDropdown(false);
-                  }
-                }}
-              >
-                <input
-                  placeholder="Search course..."
-                  type="text"
-                  value={isFieldSelected ? watch('fieldOfStudy') : fieldOfStudySearch}
-                  {...register('fieldOfStudy', {
-                    onChange: (e) => {
-                      setIsFieldSelected(false);
-                      setFieldOfStudySearch(e.target.value);
-                      if (e.target.value) setShowFieldOfStudyDropdown(true);
-                    },
-                  })}
-                  onFocus={() => fieldOfStudySearch && setShowFieldOfStudyDropdown(true)}
-                  className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
-                />
-                {errors.fieldOfStudy && <p className="text-red-500 text-[10px] mt-1">{errors.fieldOfStudy.message}</p>}
 
-                {showFieldOfStudyDropdown && fieldOfStudySearch.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
-                    {filteredCourses.length === 0 ? (
-                      <div className="p-3 text-xs text-neutral-400 text-center">No courses found</div>
-                    ) : (
-                      filteredCourses.map((c) => (
-                        <button
-                          key={c.code}
-                          type="button"
-                          onMouseDown={() => selectFieldOfStudy(c.name)}
-                          className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
-                        >
-                          <span className="font-bold text-neutral-900">{c.name}</span>
-                          <span className="ml-2 text-[10px] text-neutral-400 uppercase">{c.code}</span>
-                          <span className="block text-[10px] text-neutral-400 mt-0.5">{c.facultyName} &middot; {c.degree}</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
+              {isFieldSelected ? (
+                <div className="flex items-center gap-2 py-2 px-3 border border-[#ccd5ae] bg-[#ccd5ae]/10 rounded-xl text-xs">
+                  <span className="font-bold text-neutral-900">{fieldOfStudySearch}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setValue('fieldOfStudy', ''); setIsFieldSelected(false); setFieldOfStudySearch(''); }}
+                    className="ml-auto text-neutral-400 hover:text-red-500 text-xs cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="relative"
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      setShowFieldOfStudyDropdown(false);
+                    }
+                  }}
+                >
+                  <input
+                    placeholder="Search course..."
+                    type="text"
+                    value={fieldOfStudySearch}
+                    onChange={(e) => {
+                      setFieldOfStudySearch(e.target.value);
+                      setValue('fieldOfStudy', e.target.value);
+                      if (e.target.value) setShowFieldOfStudyDropdown(true);
+                    }}
+                    onFocus={() => fieldOfStudySearch && setShowFieldOfStudyDropdown(true)}
+                    className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+                  />
+                  {errors.fieldOfStudy && <p className="text-red-500 text-[10px] mt-1">{errors.fieldOfStudy.message}</p>}
+
+                  {showFieldOfStudyDropdown && fieldOfStudySearch.length > 0 && (
+                    <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                      {filteredCourses.length === 0 ? (
+                        <div className="p-3 text-xs text-neutral-400 text-center">No courses found</div>
+                      ) : (
+                        filteredCourses.map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onMouseDown={() => selectFieldOfStudy(c.name)}
+                            className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
+                          >
+                            <span className="font-bold text-neutral-900">{c.name}</span>
+                            <span className="ml-2 text-[10px] text-neutral-400 uppercase">{c.code}</span>
+                            <span className="block text-[10px] text-neutral-400 mt-0.5">{c.facultyName} &middot; {c.degree}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Graduation Year */}
