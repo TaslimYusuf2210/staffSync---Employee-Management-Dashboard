@@ -109,7 +109,6 @@ const initialEmployees: Employee[] = [
       {
         id: 'edu-1',
         institutionName: 'Chicago Art Institute',
-        degree: 'Bachelor of Fine Arts',
         qualification: 'BFA',
         fieldOfStudy: 'Graphic Design',
         graduationYear: '2014',
@@ -149,7 +148,6 @@ const initialEmployees: Employee[] = [
       {
         id: 'edu-2',
         institutionName: 'Binus University',
-        degree: 'Bachelor of Computer Science',
         qualification: 'B.CompSc',
         fieldOfStudy: 'Software Engineering',
         graduationYear: '2020',

@@ -3,7 +3,6 @@
 export interface Education {
   id: string;
   institutionName: string;
-  degree: string;
   qualification: string;
   fieldOfStudy: string;
   graduationYear: string;
