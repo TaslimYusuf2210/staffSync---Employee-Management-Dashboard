@@ -34,6 +34,16 @@ const degreeTypes = {
           "category": "Undergraduate Professional Degree"
         },
         {
+          "abbreviation": "BDS",
+          "full_name": "Bachelor of Dental Surgery",
+          "category": "Undergraduate Professional Degree"
+        },
+        {
+          "abbreviation": "Pharm.D",
+          "full_name": "Doctor of Pharmacy",
+          "category": "Undergraduate / Professional Doctorate"
+        },
+        {
           "abbreviation": "B.Pharm.",
           "full_name": "Bachelor of Pharmacy",
           "category": "Undergraduate Professional Degree"
@@ -52,6 +62,96 @@ const degreeTypes = {
           "abbreviation": "B.Agric.",
           "full_name": "Bachelor of Agriculture",
           "category": "Undergraduate Degree"
+        },
+        {
+          "abbreviation": "B.MLS",
+          "full_name": "Bachelor of Medical Laboratory Science",
+          "category": "Undergraduate Professional Degree"
+        },
+        {
+          "abbreviation": "OD",
+          "full_name": "Doctor of Optometry",
+          "category": "Undergraduate Professional Degree"
+        },
+        {
+          "abbreviation": "DVM",
+          "full_name": "Doctor of Veterinary Medicine",
+          "category": "Undergraduate Professional Degree"
+        },
+        {
+          "abbreviation": "B.Arch.",
+          "full_name": "Bachelor of Architecture",
+          "category": "Undergraduate Degree"
+        },
+        {
+          "abbreviation": "B.URP",
+          "full_name": "Bachelor of Urban and Regional Planning",
+          "category": "Undergraduate Degree"
+        },
+        {
+          "abbreviation": "PGD",
+          "full_name": "Postgraduate Diploma",
+          "category": "Postgraduate Qualification"
+        },
+        {
+          "abbreviation": "M.Sc.",
+          "full_name": "Master of Science",
+          "category": "Postgraduate Academic Degree"
+        },
+        {
+          "abbreviation": "M.A.",
+          "full_name": "Master of Arts",
+          "category": "Postgraduate Academic Degree"
+        },
+        {
+          "abbreviation": "M.Eng.",
+          "full_name": "Master of Engineering",
+          "category": "Postgraduate Academic Degree"
+        },
+        {
+          "abbreviation": "LL.M.",
+          "full_name": "Master of Laws",
+          "category": "Postgraduate Academic Degree"
+        },
+        {
+          "abbreviation": "M.Ed.",
+          "full_name": "Master of Education",
+          "category": "Postgraduate Academic Degree"
+        },
+        {
+          "abbreviation": "MBA",
+          "full_name": "Master of Business Administration",
+          "category": "Postgraduate Professional Degree"
+        },
+        {
+          "abbreviation": "MPA",
+          "full_name": "Master of Public Administration",
+          "category": "Postgraduate Professional Degree"
+        },
+        {
+          "abbreviation": "MPH",
+          "full_name": "Master of Public Health",
+          "category": "Postgraduate Professional Degree"
+        },
+        {
+          "abbreviation": "MSW",
+          "full_name": "Master of Social Work",
+          "category": "Postgraduate Professional Degree"
+        },
+        {
+          "abbreviation": "MURP",
+          "full_name": "Master of Urban and Regional Planning",
+          "category": "Postgraduate Professional Degree"
+        },
+        {
+          "abbreviation": "M.Phil.",
+          "full_name": "Master of Philosophy",
+          "category": "Postgraduate Research Degree"
+        },
+        {
+          "abbreviation": "Ph.D.",
+          "full_name": "Doctor of Philosophy",
+          "category": "Doctoral Degree"
         }
       ]
     },

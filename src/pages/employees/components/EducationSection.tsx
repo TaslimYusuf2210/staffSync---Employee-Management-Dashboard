@@ -11,6 +11,7 @@ import { useAddEducation } from '@/hooks/useMutation/useAddEducation';
 import { useDeleteEducation } from '@/hooks/useMutation/useDeleteEducation';
 import institutions from '@/constants/NigeriaInstitutions';
 import degreeTypes from '@/constants/NigeriaDegreeTypes';
+import courses from '@/constants/NigeriaCourses';
 
 interface EducationSectionProps {
   education: Employee['Education'];
@@ -36,6 +37,16 @@ const allQualifications = degreeTypes.tertiary_qualifications.flatMap((group) =>
   }))
 );
 
+/** Flatten all courses from all faculties into a single list */
+const allCourses = courses.faculties.flatMap((faculty) =>
+  faculty.courses.map((c) => ({
+    code: c.code,
+    name: c.name,
+    degree: c.degree,
+    facultyName: faculty.faculty_name,
+  }))
+);
+
 export function EducationSection({ education, employeeId }: EducationSectionProps) {
   const { mutateAsync: addEducation, isPending: isAdding } = useAddEducation(employeeId);
   const { mutateAsync: deleteEducation, isPending: isDeleting } = useDeleteEducation(employeeId);
@@ -49,6 +60,12 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
   // Qualification search
   const [qualificationSearch, setQualificationSearch] = useState('');
   const [showQualificationDropdown, setShowQualificationDropdown] = useState(false);
+  const [isQualSelected, setIsQualSelected] = useState(false);
+
+  // Field of study search
+  const [fieldOfStudySearch, setFieldOfStudySearch] = useState('');
+  const [showFieldOfStudyDropdown, setShowFieldOfStudyDropdown] = useState(false);
+  const [isFieldSelected, setIsFieldSelected] = useState(false);
 
   const educationList = education ?? [];
 
@@ -75,14 +92,28 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
     [selectedQualAbbr]
   );
 
-  const filteredInstitutions = institutions.filter((inst) =>
-    inst.name.toLowerCase().includes(institutionSearch.toLowerCase())
-  );
+  const searchTerm = institutionSearch.toLowerCase();
+  const filteredInstitutions = institutions
+    .filter((inst) =>
+      inst.name.toLowerCase().includes(searchTerm) ||
+      inst.abb.toLowerCase().includes(searchTerm)
+    )
+    .sort((a, b) => {
+      const aAbbrMatch = a.abb.toLowerCase().startsWith(searchTerm) ? 0 : 1;
+      const bAbbrMatch = b.abb.toLowerCase().startsWith(searchTerm) ? 0 : 1;
+      return aAbbrMatch - bAbbrMatch;
+    });
 
   const filteredQualifications = allQualifications.filter(
     (q) =>
       q.abbreviation.toLowerCase().includes(qualificationSearch.toLowerCase()) ||
       q.fullName.toLowerCase().includes(qualificationSearch.toLowerCase())
+  );
+
+  const filteredCourses = allCourses.filter(
+    (c) =>
+      c.name.toLowerCase().includes(fieldOfStudySearch.toLowerCase()) ||
+      c.code.toLowerCase().includes(fieldOfStudySearch.toLowerCase())
   );
 
   const selectInstitution = (name: string) => {
@@ -95,6 +126,14 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
     setValue('qualification', abbr);
     setQualificationSearch('');
     setShowQualificationDropdown(false);
+    setIsQualSelected(true);
+  };
+
+  const selectFieldOfStudy = (name: string) => {
+    setValue('fieldOfStudy', name);
+    setFieldOfStudySearch('');
+    setShowFieldOfStudyDropdown(false);
+    setIsFieldSelected(true);
   };
 
   const onSubmit = async (data: EducationFormValues) => {
@@ -119,6 +158,11 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
         <button
           onClick={() => {
             reset();
+            setInstitutionSearch('');
+            setQualificationSearch('');
+            setFieldOfStudySearch('');
+            setIsQualSelected(false);
+            setIsFieldSelected(false);
             setShowDialog(true);
           }}
           className="px-3 py-1.5 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5"
@@ -193,9 +237,10 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
                 <input
                   placeholder="Search qualification..."
                   type="text"
-                  value={selectedQual ? `${selectedQual.abbreviation} — ${selectedQual.fullName}` : qualificationSearch}
+                  value={isQualSelected && selectedQual ? `${selectedQual.abbreviation} — ${selectedQual.fullName}` : qualificationSearch}
                   {...register('qualification', {
                     onChange: (e) => {
+                      setIsQualSelected(false);
                       setQualificationSearch(e.target.value);
                       if (e.target.value) setShowQualificationDropdown(true);
                     },
@@ -238,11 +283,54 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
               </div>
             )}
 
-            {/* Field of Study */}
+            {/* Field of Study - searchable dropdown */}
             <div>
               <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Field of Study</label>
-              <input type="text" {...register('fieldOfStudy')} placeholder="e.g. Nursing, Computer Science" className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]" />
-              {errors.fieldOfStudy && <p className="text-red-500 text-[10px] mt-1">{errors.fieldOfStudy.message}</p>}
+              <div
+                className="relative"
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setShowFieldOfStudyDropdown(false);
+                  }
+                }}
+              >
+                <input
+                  placeholder="Search course..."
+                  type="text"
+                  value={isFieldSelected ? watch('fieldOfStudy') : fieldOfStudySearch}
+                  {...register('fieldOfStudy', {
+                    onChange: (e) => {
+                      setIsFieldSelected(false);
+                      setFieldOfStudySearch(e.target.value);
+                      if (e.target.value) setShowFieldOfStudyDropdown(true);
+                    },
+                  })}
+                  onFocus={() => fieldOfStudySearch && setShowFieldOfStudyDropdown(true)}
+                  className="w-full py-2 px-3 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#ccd5ae]"
+                />
+                {errors.fieldOfStudy && <p className="text-red-500 text-[10px] mt-1">{errors.fieldOfStudy.message}</p>}
+
+                {showFieldOfStudyDropdown && fieldOfStudySearch.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border border-neutral-200 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                    {filteredCourses.length === 0 ? (
+                      <div className="p-3 text-xs text-neutral-400 text-center">No courses found</div>
+                    ) : (
+                      filteredCourses.map((c) => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onMouseDown={() => selectFieldOfStudy(c.name)}
+                          className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-xs transition-colors cursor-pointer"
+                        >
+                          <span className="font-bold text-neutral-900">{c.name}</span>
+                          <span className="ml-2 text-[10px] text-neutral-400 uppercase">{c.code}</span>
+                          <span className="block text-[10px] text-neutral-400 mt-0.5">{c.facultyName} &middot; {c.degree}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Graduation Year */}
@@ -288,6 +376,11 @@ export function EducationSection({ education, employeeId }: EducationSectionProp
           <button
             onClick={() => {
               reset();
+              setInstitutionSearch('');
+              setQualificationSearch('');
+              setFieldOfStudySearch('');
+              setIsQualSelected(false);
+              setIsFieldSelected(false);
               setShowDialog(true);
             }}
             className="mt-2 px-4 py-2 bg-[#ccd5ae] hover:bg-[#faedcd] text-neutral-950 text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5"
