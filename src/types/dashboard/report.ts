@@ -11,3 +11,12 @@ export interface SalarySummary {
   highestPaid: number;
   salaryDistributionByDepartment: SalaryByDepartment[];
 }
+
+export interface DepartmentEmployeeCount {
+  department: string;
+  employeeCount: number;
+}
+
+export interface EmployeeCountResponse {
+  departments: DepartmentEmployeeCount[];
+}

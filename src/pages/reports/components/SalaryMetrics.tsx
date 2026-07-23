@@ -1,67 +1,62 @@
-import type { Employee } from '../../../types/dashboard/employee';
-import type { Department } from '../../../types/dashboard/department';
+// import type { Department } from '../../../types/dashboard/department';
 import { ReportCard } from './EmployeeMetrics';
+import { useGetSalarySummary } from '../../../hooks/useQuery/useGetSalarySummary';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface SalaryMetricsProps {
-  employees: Employee[];
-  departments: Department[];
-}
+// interface SalaryMetricsProps {
+//   departments: Department[];
+// }
 
-function computeSalary(e: Employee) {
-  const s = e.Salary ?? { baseSalary: 0, bonus: 0, allowances: 0 };
-  return s.baseSalary + s.bonus + s.allowances;
-}
+export function SalaryMetrics() {
+  const { data: salarySummary, isLoading: isSalarySummaryLoading, isError: isSalarySummaryError } = useGetSalarySummary();
 
-export function SalaryMetrics({ employees, departments }: SalaryMetricsProps) {
-  const total = employees.length;
-  const totalPayroll = employees.reduce((sum, e) => sum + computeSalary(e), 0);
-  const avgSalary = total > 0 ? Math.round(totalPayroll / total) : 0;
-  const highestPaid = employees.length > 0 ? Math.max(...employees.map(computeSalary)) : 0;
+  const totalMonthlyPayroll = salarySummary?.totalMonthlyPayroll ?? 0;
+  const averageCompensation = salarySummary?.averageCompensation ?? 0;
+  const highestPaid = salarySummary?.highestPaid ?? 0;
 
   return (
     <section className="space-y-4">
       <h2 className="text-sm font-extrabold text-neutral-900 uppercase tracking-wider">Salary Reports</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <ReportCard label="Total Monthly Payroll" value={`$${totalPayroll.toLocaleString()}`} />
-        <ReportCard label="Average Compensation" value={`$${avgSalary.toLocaleString()}`} />
-        <ReportCard label="Highest Paid" value={`$${highestPaid.toLocaleString()}`} />
-      </div>
-      <SalaryDistribution departments={departments} employees={employees} />
+      {isSalarySummaryLoading ? (
+        <div className="text-center text-neutral-400 text-xs py-6">Loading salary data...</div>
+      ) : isSalarySummaryError ? (
+        <div className="text-center text-red-500 text-xs py-6">Failed to load salary data.</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <ReportCard label="Total Monthly Payroll" value={`₦${totalMonthlyPayroll.toLocaleString()}`} />
+          <ReportCard label="Average Compensation" value={`₦${averageCompensation.toLocaleString()}`} />
+          <ReportCard label="Highest Paid" value={`₦${highestPaid.toLocaleString()}`} />
+        </div>
+      )}
+      <SalaryDistribution />
     </section>
   );
 }
 
-function SalaryDistribution({ departments, employees }: SalaryMetricsProps) {
-  const maxDeptAvg = Math.max(
-    ...departments.map((d) => {
-      const de = employees.filter((e) => e.department === d.name);
-      const total = de.reduce((sum, e) => sum + computeSalary(e), 0);
-      return de.length > 0 ? total / de.length : 0;
-    }),
-    1,
-  );
+function SalaryDistribution() {
+    const { data: salarySummary, isLoading: isSalarySummaryLoading, isError: isSalarySummaryError } = useGetSalarySummary();
+
+    const salaryDistributionByDepartment = salarySummary?.salaryDistributionByDepartment ?? [];
 
   return (
     <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
       <h3 className="font-bold text-sm text-neutral-900 mb-6">Average Salary Distribution by Department</h3>
-      <div className="h-52 flex items-end justify-between gap-3 overflow-x-auto pb-2">
-        {departments.map((dep) => {
-          const deptEmployees = employees.filter((e) => e.department === dep.name);
-          const totalSalary = deptEmployees.reduce((sum, e) => sum + computeSalary(e), 0);
-          const avg = deptEmployees.length > 0 ? Math.round(totalSalary / deptEmployees.length) : 0;
-          const pct = (avg / maxDeptAvg) * 100;
-
-          return (
-            <div key={dep.id} className="flex-1 min-w-[60px] flex flex-col items-center gap-2">
-              <span className="text-[9px] font-bold text-neutral-500">${(avg / 1000).toFixed(1)}k</span>
-              <div className="w-full bg-neutral-100 rounded-t-md h-40 flex items-end">
-                <div className="w-full bg-[#ccd5ae] rounded-t-md transition-all duration-500" style={{ height: `${pct}%` }} />
-              </div>
-              <span className="text-[8px] font-bold text-neutral-400 truncate w-full text-center" title={dep.name}>{dep.name}</span>
-            </div>
-          );
-        })}
-      </div>
+      {isSalarySummaryLoading ? (
+        <div className="h-40 bg-neutral-50 rounded-xl animate-pulse" />
+      ) : isSalarySummaryError ? (
+        <div className="h-40 flex items-center justify-center text-red-500 text-xs">Failed to load chart data.</div>
+      ) : salaryDistributionByDepartment.length === 0 ? (
+        <div className="h-40 flex items-center justify-center text-neutral-400 text-xs">No data available.</div>
+      ) : (
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={salaryDistributionByDepartment} margin={{ left: 10, right: 20 }}>
+            <XAxis type="category" dataKey="department" tick={{ fontSize: 10 }} />
+            <YAxis type="number" tick={{ fontSize: 10 }} />
+            <Tooltip formatter={(value: any) => `₦${Number(value).toLocaleString()}`} />
+            <Bar dataKey="averageSalary" fill="#ccd5ae" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 }

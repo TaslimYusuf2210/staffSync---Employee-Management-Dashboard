@@ -25,7 +25,7 @@ export default function Reports() {
       </div>
 
       <EmployeeMetrics employees={employees} departments={departments} />
-      <SalaryMetrics employees={employees} departments={departments} />
+      <SalaryMetrics />
       <HiringTrend />
     </div>
   );
