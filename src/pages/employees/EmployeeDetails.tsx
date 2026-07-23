@@ -168,7 +168,7 @@ export default function EmployeeDetails() {
         {activeTab === 'education' && <EducationSection education={employee.Education} employeeId={employee.id} />}
         {activeTab === 'salary' && <SalaryTab employee={employee} />}
         {activeTab === 'bank' && <BankTab employee={employee}/>}
-        {activeTab === 'documents' && <DocumentsSection documents={employee.Documents}  />}
+        {activeTab === 'documents' && <DocumentsSection documents={employee.Documents} employeeId={employee.id} />}
         {activeTab === 'notes' && <NotesSection notes={employee.Notes}  />}
       </div>
 

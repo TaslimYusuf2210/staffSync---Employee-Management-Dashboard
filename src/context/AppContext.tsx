@@ -117,7 +117,7 @@ const initialEmployees: Employee[] = [
     salary: { baseSalary: 8500, bonus: 1500, allowances: 500 },
     bankAccount: { bankName: 'Chase Bank', accountName: 'Brooklyn Simmons', accountNumber: '1234567890' },
     documents: [
-      { id: 'doc-1', name: 'Resume_Brooklyn.pdf', type: 'Resume', uploadDate: '2024-01-09' },
+      { id: 'doc-1', name: 'Resume_Brooklyn.pdf', type: 'Resume', uploadDate: '2024-01-09', fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
     ],
     notes: [
       {

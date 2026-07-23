@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { addEmployeeEducation } from '../../services/dashboard/employee';
 
-export const useAddEducation = (employeeId: string, options?: { onSuccess?: () => void }) => {
+export const useAddEducation = (employeeId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -11,7 +11,6 @@ export const useAddEducation = (employeeId: string, options?: { onSuccess?: () =
     onSuccess: () => {
       toast.success('Education record added!');
       queryClient.invalidateQueries({ queryKey: ['employee', employeeId] });
-      options?.onSuccess?.();
     },
     onError: (error: any) => {
       toast.error(error?.message || 'Failed to add education record.');
