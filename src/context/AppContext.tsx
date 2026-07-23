@@ -122,6 +122,7 @@ const initialEmployees: Employee[] = [
     notes: [
       {
         id: 'n-1',
+        title: 'Performance feedback',
         text: 'Brooklyn has outstanding creative inputs and has completed UI sprints perfectly.',
         createdDate: '2024-02-10',
       },

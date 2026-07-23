@@ -169,7 +169,7 @@ export default function EmployeeDetails() {
         {activeTab === 'salary' && <SalaryTab employee={employee} />}
         {activeTab === 'bank' && <BankTab employee={employee}/>}
         {activeTab === 'documents' && <DocumentsSection documents={employee.Documents} employeeId={employee.id} />}
-        {activeTab === 'notes' && <NotesSection notes={employee.Notes}  />}
+        {activeTab === 'notes' && <NotesSection notes={employee.Notes} employeeId={employee.id} />}
       </div>
 
       {showDeleteDialog && (

@@ -57,3 +57,16 @@ export const deleteEmployeeDocument = (employeeId: string, documentId: string) =
   request<any>(`/employees/${employeeId}/documents/${documentId}`, {
     method: 'DELETE',
   });
+
+export type AddNotePayload = { title: string; text: string };
+
+export const addNote = (employeeId: string, payload: AddNotePayload) =>
+  request<any>(`/employees/${employeeId}/notes`, {
+    method: 'POST',
+    data: payload,
+  });
+
+export const deleteNote = (employeeId: string, noteId: string) =>
+  request<any>(`/employees/${employeeId}/notes/${noteId}`, {
+    method: 'DELETE',
+  });

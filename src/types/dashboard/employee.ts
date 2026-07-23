@@ -30,6 +30,7 @@ export interface Document {
 
 export interface Note {
   id: string;
+  title: string;
   text: string;
   createdDate: string;
 }
