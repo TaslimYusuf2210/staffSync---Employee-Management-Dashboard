@@ -11,15 +11,41 @@ import { uploadToCloudinary } from '../../../services/cloudinary';
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api';
 
 /** Download a document via the backend proxy (sends auth token) */
-async function downloadDocument(docId: string, filename: string, employeeId: string) {
+async function downloadDocument(
+  docId: string,
+  filename: string,
+  employeeId: string,
+  // onDone: () => void,
+) {
+  console.log('[Download] Starting for doc:', { docId, filename, employeeId });
+  // ...existing code...
+
   const token = localStorage.getItem('token') ?? sessionStorage.getItem('token');
+  console.log('[Download] Token:', token ? `${token.slice(0, 15)}...` : 'NONE');
+
+  const url = `${API_BASE}/employees/${employeeId}/documents/${docId}/download`;
+  console.log('[Download] URL:', url);
+
   try {
-    const res = await fetch(
-      `${API_BASE}/employees/${employeeId}/documents/${docId}/download`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    console.log('[Download] Sending fetch...');
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log('[Download] Response status:', res.status, res.statusText);
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('[Download] Error body:', text);
+      throw new Error(`Server returned ${res.status}: ${text}`);
+    }
+
+    console.log('[Download] Reading blob...');
     const blob = await res.blob();
+    console.log('[Download] Blob size:', blob.size, 'bytes, type:', blob.type);
+
+    if (blob.size === 0) throw new Error('Received empty file from server');
+
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
@@ -28,9 +54,10 @@ async function downloadDocument(docId: string, filename: string, employeeId: str
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
+    console.log('[Download] Success!');
   } catch (err) {
+    console.error('[Download] Failed at catch block:', err);
     toast.error('Unable to download this file. The document storage may be temporarily unavailable.');
-    console.error('[Download failed]', err);
   }
 }
 
@@ -51,6 +78,7 @@ export function DocumentsSection({ documents, employeeId }: DocumentsSectionProp
   const { mutateAsync: deleteDocument } = useDeleteDocument(employeeId);
   const [showDialog, setShowDialog] = useState(false);
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [downloadLoadingId, setDownloadLoadingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
