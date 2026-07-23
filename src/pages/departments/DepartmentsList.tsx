@@ -12,7 +12,7 @@ import { EmptyState } from "../../components/EmptyState";
 export default function DepartmentsList() {
   const navigate = useNavigate();
   const { data: departmentsData, isLoading: isDepartmentsLoading, isError: isDepartmentsError } = useGetDepartments();
-  const departments = departmentsData?.data?.departments ?? [];
+  const departments = departmentsData ?? [];
   console.log('[DepartmentsList] departmentsData:', departmentsData);
   console.log('[DepartmentsList] departments array being rendered:', departments);
   const { deleteDepartment } = useApp();
